@@ -1,0 +1,17 @@
+[
+  {
+    "type": "page",
+    "options": {
+      "format": "A4",
+      "orientation": "P"
+    }
+  },
+  {
+    "type": "text",
+    "text": "Hello world!",
+    "options": {
+      "x": 10,
+      "y": 10
+    }
+  }
+]
