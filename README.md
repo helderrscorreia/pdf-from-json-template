@@ -39,3 +39,17 @@ $pdfParser->setData([
 // render PDF file
 $pdfParser->render();
 ```
+
+### Components
+#### Page
+Page is the only required component, and must always be placed at the beginning of the JSON structure.
+```javascript
+{
+  "type": "page",
+  "options": {
+    "format": "A4" // The values can be A4,A5,... and also [sizeX,sizeY],
+    "units": "mm",
+    "orientation": "P" // "P" for portrait or "L" for landscape
+  }
+}
+```
