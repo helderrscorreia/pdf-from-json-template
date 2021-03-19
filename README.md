@@ -53,3 +53,43 @@ Page is the only required component, and must always be placed at the beginning 
   }
 }
 ```
+#### Text
+```javascript
+{
+  "type": "text",
+  "text": "Hello world!" // string to be shown
+  "data": "person_name" // data array index
+  "options": {
+    "x": 10,
+    "y": 10,
+    "font-size": 12,
+    "font-family": "times",
+    "color": "#ff00ff",
+    "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
+    "rotation": 0
+  }
+}
+```
+
+#### Cell
+```javascript
+{
+  "type": "cell",
+  "text": "Hello world!" // string to be shown
+  "data": "person_name" // data array index
+  "options": {
+    "x": 10,
+    "y": 10,
+    "width": 50,
+    "height": 5,
+    "border": 0, // 0-disable, 1-enable
+    "multiline": false,
+    "font-size": 12,
+    "font-family": "times",
+    "color": "#ff00ff",
+    "text-align": "L" // L-left, R-right, C-center, J-justified
+    "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
+    "rotation": 0 // degrees
+  }
+}
+```
