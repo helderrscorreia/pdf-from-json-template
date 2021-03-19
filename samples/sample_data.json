@@ -1,0 +1,41 @@
+[
+  {
+    "type": "page",
+    "options": {
+      "format": "A4",
+      "orientation": "P"
+    }
+  },
+  {
+    "type": "cell",
+    "description": "String with data",
+    "text": "You can place data inside strings: {{person_name}} and {{person_address}}",
+    "options": {
+      "x": 10,
+      "y": 10
+    }
+  },
+  {
+    "type": "cell",
+    "description": "Only data",
+    "data": "person_address",
+    "options": {
+      "x": 10,
+      "y": 20
+    }
+  },
+  {
+    "type": "details",
+    "data": "lines",
+    "children": [
+      {
+        "type": "cell",
+        "data": "item"
+      },
+      {
+        "type": "cell",
+        "data": "price"
+      }
+    ]
+  }
+]
