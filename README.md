@@ -28,7 +28,7 @@ $outputFilename = "document.pdf";
 // instantiate PDFParser
 $pdfParser = new PDFParser($JSONTemplateString, $outputFilename);
 
-// set data array to be used
+// OPTIONAL: set data array to be used
 $pdfParser->setData([
   "person-name" => "John Silver",
   "person-address" => "Yellow Street 34",
