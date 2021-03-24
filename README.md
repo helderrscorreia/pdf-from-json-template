@@ -93,3 +93,17 @@ Page is the only required component, and must always be placed at the beginning 
   }
 }
 ```
+
+#### Image
+```javascript
+{
+  "type": "image",
+  "src": "https://www.yoursite.com/image.png",
+  "options": {
+    "x": 10,
+    "y": 10,
+    "width": 50,
+    "height": 5
+  }
+}
+```
