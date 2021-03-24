@@ -123,3 +123,42 @@ Page is the only required component, and must always be placed at the beginning 
    }
 }
 ```
+
+
+#### Box
+```javascript
+{
+  "type": "box",
+  "options": {
+    "x": 10,
+    "y": 10,
+    "width": 50,
+    "height": 50,
+    "border-width": 0.1,
+    "border-color": [0,0,0],
+    "fill-color": [255,255,255]
+  }
+}
+```
+
+
+#### QRCode
+```javascript
+{
+  "type": "box",
+  "content": "www.yoursite.com",
+  "data": "variable.field" // data array variable
+  "options": {
+    "x": 10,
+    "y": 10,
+    "width": 50,
+    "border": true,
+    "vpadding": "auto",
+    "hpadding": "auto",
+    "fgcolor": [0,0,0],
+    "bgcolor": [255,255,255],
+    "module_width": 1,
+    "module_height": 1
+  }
+}
+```
