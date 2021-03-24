@@ -107,3 +107,19 @@ Page is the only required component, and must always be placed at the beginning 
   }
 }
 ```
+
+
+#### Line
+```javascript
+{
+  "type": "line",
+  "options": {
+    "x1" => 10,
+    "y1" => 10,
+    "x2" => 40,
+    "y2" => 10,
+    "width" => 0.1 // line width
+    "color" => [0,0,0] // RGB array
+   }
+}
+```
