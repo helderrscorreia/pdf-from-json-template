@@ -8,9 +8,13 @@
  * Goldylocks Portugal
  */
 
+
+// include TCPDF
+include_once(dirname(__FILE__).'/../tcpdf/tcpdf_import.php');
+
 class PDFParser
 {
-    private string $jsonTemplate;
+    private $jsonTemplate;
     private $pdf;
     private $fileName;
     private $outputType = "I";
@@ -274,7 +278,7 @@ class PDFParser
         }
     }
 
-    protected function renderImage($obj)
+    protected function renderImage($obj, $dataArray = [])
     {
         $imageOptions = [
             "x" => $obj['options']['x'] ?? 0,
@@ -283,7 +287,8 @@ class PDFParser
             "height" => $obj['options']['height'] ?? 40
         ];
 
-        $this->pdf->Image($obj['src'], $imageOptions['x'], $imageOptions['y'], $imageOptions['width'], $imageOptions['height']);
+        $imgSrc = $this->parseStringData($obj['src'],$dataArray);
+        $this->pdf->Image($imgSrc, $imageOptions['x'], $imageOptions['y'], $imageOptions['width'], $imageOptions['height']);
     }
 
     protected function renderBox($obj)
@@ -454,7 +459,7 @@ class PDFParser
                 $this->renderCell($tObj, $data);
                 break;
             case 'image':
-                $this->renderImage($tObj);
+                $this->renderImage($tObj, $data);
                 break;
             case 'box':
                 $this->renderBox($tObj);
