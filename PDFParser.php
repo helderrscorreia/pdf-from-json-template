@@ -10,7 +10,7 @@
 
 
 // include TCPDF
-include_once(dirname(__FILE__).'/../tcpdf/tcpdf_import.php');
+include_once(dirname(__FILE__) . '/../tcpdf/tcpdf_import.php');
 
 class PDFParser
 {
@@ -23,11 +23,13 @@ class PDFParser
     private $pageCount = 0;
     private $documentCopies = 1;
     private $currentDocumentCopy = 1;
+    private $designMode = false;
 
-    public function __construct($jsonTemplate, $fileName = "document.pdf")
+    public function __construct($jsonTemplate, $fileName = "document.pdf", $designMode = false)
     {
         $this->jsonTemplate = $jsonTemplate;
         $this->fileName = $fileName;
+        $this->designMode = $designMode;
     }
 
     /**
@@ -80,6 +82,10 @@ class PDFParser
      */
     public function parseStringData($string, $dataArray = [])
     {
+        if ($this->designMode) {
+            return $string;
+        }
+
         // page numbers
         $string = str_replace("{{page_number}}", $this->pdf->getAliasNumPage(), $string);
         $string = str_replace("{{total_pages}}", $this->pdf->getAliasNbPages(), $string);
@@ -102,6 +108,10 @@ class PDFParser
      */
     public function getDataField($fieldPath, $dataArray = [])
     {
+        if ($this->designMode) {
+            return "[$fieldPath]";
+        }
+
         $explodedPath = explode('.', $fieldPath);
 
         if (!empty($dataArray)) {
@@ -287,7 +297,7 @@ class PDFParser
             "height" => $obj['options']['height'] ?? 40
         ];
 
-        $imgSrc = $this->parseStringData($obj['src'],$dataArray);
+        $imgSrc = $this->parseStringData($obj['src'], $dataArray);
         $this->pdf->Image($imgSrc, $imageOptions['x'], $imageOptions['y'], $imageOptions['width'], $imageOptions['height']);
     }
 
