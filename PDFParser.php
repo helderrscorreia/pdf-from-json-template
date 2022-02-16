@@ -91,13 +91,13 @@ class PDFParser
         $string = str_replace("{{total_pages}}", $this->pdf->getAliasNbPages(), $string);
 
         // global variables
-        $string = preg_replace_callback('/{{([\w\.]+)}}/', function ($match) {
-            return $this->getDataField($match[1], $this->data) ?? "";
+        $string = preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) {
+            return $this->getDataField(str_replace(" ", "",$match[1]), $this->data) ?? "";
         }, $string);
 
         // details variables
-        return preg_replace_callback('/{{([\w\.]+)}}/', function ($match) use ($dataArray) {
-            return $this->getDataField($match[1], $dataArray);
+        return preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) use ($dataArray) {
+            return $this->getDataField(str_replace(" ", "",$match[1]), $dataArray);
         }, $string);
     }
 
@@ -106,9 +106,9 @@ class PDFParser
      * @param $fieldPath
      * @return array|mixed
      */
-    public function getDataField($fieldPath, $dataArray = [])
+    public function getDataField($fieldPath, $dataArray = [], $forceParse = false)
     {
-        if ($this->designMode) {
+        if ($this->designMode && !$forceParse) {
             return "[$fieldPath]";
         }
 
@@ -283,7 +283,7 @@ class PDFParser
         } else {
             $this->pdf->StartTransform();
             $this->pdf->Rotate($cellOptions['rotation']);
-            $this->pdf->Cell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], $cellOptions['text-align']);
+            $this->pdf->Cell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], 0, $cellOptions['text-align']);
             $this->pdf->StopTransform();
         }
     }
@@ -297,7 +297,7 @@ class PDFParser
             "height" => $obj['options']['height'] ?? 40
         ];
 
-        $imgSrc = $this->parseStringData($obj['src'], $dataArray);
+        $imgSrc = $this->parseStringData($obj['src'], $dataArray, true);
         $this->pdf->Image($imgSrc, $imageOptions['x'], $imageOptions['y'], $imageOptions['width'], $imageOptions['height']);
     }
 
