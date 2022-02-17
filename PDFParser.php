@@ -90,14 +90,19 @@ class PDFParser
         $string = str_replace("{{page_number}}", $this->pdf->getAliasNumPage(), $string);
         $string = str_replace("{{total_pages}}", $this->pdf->getAliasNbPages(), $string);
 
+        // system variables
+        $string = str_replace("{{current_date}}", date('Y-m-j'), $string);
+        $string = str_replace("{{current_time}}", date('H:i:s'), $string);
+
+
         // global variables
         $string = preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) {
-            return $this->getDataField(str_replace(" ", "",$match[1]), $this->data) ?? "";
+            return $this->getDataField(str_replace(" ", "", $match[1]), $this->data) ?? "";
         }, $string);
 
         // details variables
         return preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) use ($dataArray) {
-            return $this->getDataField(str_replace(" ", "",$match[1]), $dataArray);
+            return $this->getDataField(str_replace(" ", "", $match[1]), $dataArray);
         }, $string);
     }
 
