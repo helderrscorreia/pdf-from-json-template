@@ -173,3 +173,11 @@ Page is the only required component, and must always be placed at the beginning 
   "font-size": 12
 }
 ```
+
+
+#### Line break
+```javascript
+{
+  "type": "break"
+}
+```
