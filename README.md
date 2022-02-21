@@ -144,6 +144,41 @@ Page is the only required component, and must always be placed at the beginning 
 ```
 
 
+
+#### Barcode
+```javascript
+{
+  "type": "barcode",
+  "content": "123456789012",
+  "data": "variable.field" // data array variable
+  "options": {
+    "type": "EAN13",
+    "x": 10,
+    "y": 10,
+    "width": 50,
+    "height": 10,
+    "xres": 0.4,
+    "align": "N",
+   "position": "",
+   "textalign": "C",
+   "stretch": false,
+   "fitwidth": true,
+   "cellfitalign": "",
+   "border": true,
+   "hpadding": "auto",
+   "vpadding": "auto",
+   "fgcolor": [0,0,0],
+   "bgcolor": false,
+   "text": true,
+   "font": "helvetica",
+   "fontsize": 8,
+   "stretchtext": 4
+  }
+}
+```
+
+
+
 #### QRCode
 ```javascript
 {
