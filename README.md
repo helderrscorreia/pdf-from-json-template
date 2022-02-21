@@ -40,6 +40,49 @@ $pdfParser->setData([
 $pdfParser->render();
 ```
 
+### Sections
+#### Header
+The header component will repeat itself at the beginning of new page.
+```javascript
+{
+  "type": "header",
+  "children": [
+    // header components
+  ]
+}
+```
+
+#### Details
+The details component accepts a data property that will iterate until the section height it's reached.
+After the height it's maxed a new page will be created in order to iterate the remaining data again.
+
+```javascript
+{
+  "type": "details",
+  "details": "document.lines", // variable name to be iterated
+  "children": [
+      {
+        "type": "cell",
+        "data": "barcode" // sub variable to be used in each row column
+      },
+      {
+        "type": "cell",
+        "data": "price"
+      }
+    ]
+}
+```
+#### Footer
+The footer component will repeat itself at the end of each page.
+```javascript
+{
+  "type": "footer",
+  "children": [
+    // footer components
+  ]
+}
+```
+
 ### Components
 #### Page
 Page is the only required component, and must always be placed at the beginning of the JSON structure.
