@@ -218,8 +218,8 @@ class PDFParser
             $textOptions['color'] = $this->convertHexToRGBColor($textOptions['color']);
         }
 
-        if ($cellOptions['bg-color'][0] === "#") {
-            $cellOptions['bg-color'] = $this->convertHexToRGBColor($cellOptions['bg-color']);
+        if ($textOptions['bg-color'][0] === "#") {
+            $textOptions['bg-color'] = $this->convertHexToRGBColor($textOptions['bg-color']);
         }
 
         // activate fill color
@@ -512,29 +512,31 @@ class PDFParser
         $endY = $startY + $options['height'];
 
         // render each line
-        foreach ($data as $detail) {
-            foreach ($obj['children'] as $childrenComponent) {
-                $this->renderComponent($childrenComponent, $detail);
-            }
+        if (!empty($data)) {
+            foreach ($data as $detail) {
+                foreach ($obj['children'] as $childrenComponent) {
+                    $this->renderComponent($childrenComponent, $detail);
+                }
 
-            // render new line
-            $this->newLine();
+                // render new line
+                $this->newLine();
 
-            // set X position again
-            // in FPDF X only can be set after Y, Y default X to 10
-            if ($options['x'] > 0) {
-                $this->pdf->setX($options['x']);
-            }
+                // set X position again
+                // in FPDF X only can be set after Y, Y default X to 10
+                if ($options['x'] > 0) {
+                    $this->pdf->setX($options['x']);
+                }
 
-            // remove the first data from the details array
-            array_shift($this->details);
+                // remove the first data from the details array
+                array_shift($this->details);
 
-            // get current Y position
-            $posY = $this->pdf->getY();
+                // get current Y position
+                $posY = $this->pdf->getY();
 
-            // check Y position render limit
-            if ($posY >= ($endY - $options['overflow-margin'])) {
-                return;
+                // check Y position render limit
+                if ($posY >= ($endY - $options['overflow-margin'])) {
+                    return;
+                }
             }
         }
     }
@@ -593,7 +595,7 @@ class PDFParser
                 $this->renderHeaders($tObj);
                 break;
             case 'details':
-                $this->renderDetails($tObj);
+                if (!$this->designMode) $this->renderDetails($tObj);
                 break;
             case 'footer':
                 $this->renderFooters($tObj);
