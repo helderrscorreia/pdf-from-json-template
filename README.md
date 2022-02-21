@@ -33,7 +33,11 @@ $pdfParser->setData([
   "person-name" => "John Silver",
   "person-address" => "Yellow Street 34",
   "person-zipcode" => "34500",
-  "person-city" => "Liverpool"
+  "person-city" => "Liverpool",
+  "lines" => [
+    ["barcode" => 1, "price" => 2],
+    ["barcode" => 2, "price" => 3.45]
+  ]
 ]);
 
 // render PDF file
