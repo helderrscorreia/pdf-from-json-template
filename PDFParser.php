@@ -95,16 +95,17 @@ class PDFParser
         $string = str_replace("{{current_date}}", date('Y-m-j'), $string);
         $string = str_replace("{{current_time}}", date('H:i:s'), $string);
 
-
-        // global variables
-        $string = preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) {
-            return $this->getDataField(str_replace(" ", "", $match[1]), $this->data) ?? "";
-        }, $string);
-
         // details variables
-        return preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) use ($dataArray) {
+        $string = preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) use ($dataArray) {
             return $this->getDataField(str_replace(" ", "", $match[1]), $dataArray);
         }, $string);
+
+        // global variables
+        return preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) {
+            return $this->getDataField(str_replace(" ", "", $match[1]), $this->data);
+        }, $string);
+
+
     }
 
     /**
@@ -281,7 +282,7 @@ class PDFParser
             $cellOptions['color'] = $this->convertHexToRGBColor($cellOptions['color']);
         }
 
-        if ($cellOptions['bg-color'][0] === "#") {
+        if ($cellOptions['bg-color'] !== null && $cellOptions['bg-color'][0] === "#") {
             $cellOptions['bg-color'] = $this->convertHexToRGBColor($cellOptions['bg-color']);
         }
 
@@ -464,7 +465,7 @@ class PDFParser
         $options = [
             "font-family" => $obj['font-family'] ?? $this->lastFont,
             "font-decoration" => $obj['font-decoration'] ?? "",
-            "font-size" => $obj['font-family'] ?? 12
+            "font-size" => $obj['font-size'] ?? 12
         ];
 
         // save last used font
@@ -550,7 +551,6 @@ class PDFParser
 
     protected function renderComponent($tObj, $data = [])
     {
-
         // visibility conditions
         // render only on last or first page
         if (isset($tObj['first_page']) && $tObj['first_page'] === true && $this->pageCount > 1) return;
