@@ -40,6 +40,20 @@ $pdfParser->setData([
 $pdfParser->render();
 ```
 
+### Page
+Page is the only required component, and must always be placed at the beginning of the JSON structure.
+```javascript
+{
+  "type": "page",
+  "options": {
+    "format": "A4" // The values can be A4,A5,... and also [sizeX,sizeY],
+    "units": "mm",
+    "orientation": "P" // "P" for portrait or "L" for landscape
+  }
+}
+```
+
+
 ### Sections
 #### Header
 The header component will repeat itself at the beginning of new page.
@@ -84,18 +98,6 @@ The footer component will repeat itself at the end of each page.
 ```
 
 ### Components
-#### Page
-Page is the only required component, and must always be placed at the beginning of the JSON structure.
-```javascript
-{
-  "type": "page",
-  "options": {
-    "format": "A4" // The values can be A4,A5,... and also [sizeX,sizeY],
-    "units": "mm",
-    "orientation": "P" // "P" for portrait or "L" for landscape
-  }
-}
-```
 #### Text
 ```javascript
 {
