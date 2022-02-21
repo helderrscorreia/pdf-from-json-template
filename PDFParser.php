@@ -23,6 +23,7 @@ class PDFParser
     private $pageCount = 0;
     private $documentCopies = 1;
     private $currentDocumentCopy = 1;
+    private $lastFont = 'times';
     private $designMode = false;
 
     public function __construct($jsonTemplate, $fileName = "document.pdf", $designMode = false)
@@ -205,8 +206,9 @@ class PDFParser
             "x" => $obj['options']['x'] ?? 0,
             "y" => $obj['options']['y'] ?? 0,
             "color" => $obj['options']['color'] ?? [0, 0, 0],
+            "bg-color" => $obj['options']['bg-color'] ?? null,
             "font-size" => $obj['options']['font-size'] ?? 12,
-            "font-family" => $obj['options']['font-family'] ?? 'times',
+            "font-family" => $obj['options']['font-family'] ?? $this->lastFont,
             "text-decoration" => $obj['options']['text-decoration'] ?? '',
             "rotation" => $obj['options']['rotation'] ?? 0
         ];
@@ -214,6 +216,18 @@ class PDFParser
         // process color
         if ($textOptions['color'][0] === "#") {
             $textOptions['color'] = $this->convertHexToRGBColor($textOptions['color']);
+        }
+
+        if ($cellOptions['bg-color'][0] === "#") {
+            $cellOptions['bg-color'] = $this->convertHexToRGBColor($cellOptions['bg-color']);
+        }
+
+        // activate fill color
+        if ($textOptions['bg-color'] !== null) {
+            $this->pdf->SetFillColor($textOptions['bg-color'][0], $textOptions['bg-color'][1], $textOptions['bg-color'][2]);
+            $useFillColor = true;
+        } else {
+            $useFillColor = false;
         }
 
         // text parse
@@ -239,7 +253,7 @@ class PDFParser
 
         $this->pdf->StartTransform();
         $this->pdf->Rotate($textOptions['rotation']);
-        $this->pdf->Text($posX, $posY, $text . $data);
+        $this->pdf->Text($posX, $posY, $text . $data, 0, false, true, 0, 0, "L", $useFillColor);
         $this->pdf->StopTransform();
 
     }
@@ -252,8 +266,9 @@ class PDFParser
             "width" => $obj['options']['width'] ?? 50,
             "height" => $obj['options']['height'] ?? 5,
             "color" => $obj['options']['color'] ?? [0, 0, 0],
+            "bg-color" => $obj['options']['bg-color'] ?? null,
             "font-size" => $obj['options']['font-size'] ?? 12,
-            "font-family" => $obj['options']['font-family'] ?? 'times',
+            "font-family" => $obj['options']['font-family'] ?? $this->lastFont,
             "text-decoration" => $obj['options']['text-decoration'] ?? '',
             "text-align" => $obj['options']['text-align'] ?? 'L',
             "border" => $obj['options']['border'] ?? '',
@@ -266,6 +281,10 @@ class PDFParser
             $cellOptions['color'] = $this->convertHexToRGBColor($cellOptions['color']);
         }
 
+        if ($cellOptions['bg-color'][0] === "#") {
+            $cellOptions['bg-color'] = $this->convertHexToRGBColor($cellOptions['bg-color']);
+        }
+
         // text or data
         $data = isset($obj['data']) ? $this->getDataField($obj['data'], $dataArray) : "";
         $text = isset($obj['text']) ? $this->parseStringData($obj['text'], $dataArray) : "";
@@ -273,6 +292,14 @@ class PDFParser
         // set font parameters
         $this->pdf->SetFont($cellOptions['font-family'], $cellOptions['text-decoration'], $cellOptions['font-size']);
         $this->pdf->SetTextColor($cellOptions['color'][0], $cellOptions['color'][1], $cellOptions['color'][2]);
+
+        // activate fill color
+        if ($cellOptions['bg-color'] !== null) {
+            $this->pdf->SetFillColor($cellOptions['bg-color'][0], $cellOptions['bg-color'][1], $cellOptions['bg-color'][2]);
+            $useFillColor = true;
+        } else {
+            $useFillColor = false;
+        }
 
         // set XY position
         if ($cellOptions['y'] !== 0) {
@@ -284,13 +311,16 @@ class PDFParser
 
         // render cell
         if ($cellOptions['multiline'] === true) {
-            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], $cellOptions['text-align']);
+            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], $cellOptions['text-align'], $useFillColor);
         } else {
             $this->pdf->StartTransform();
             $this->pdf->Rotate($cellOptions['rotation']);
-            $this->pdf->Cell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], 0, $cellOptions['text-align']);
+            $this->pdf->Cell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], 0, $cellOptions['text-align'], $useFillColor);
             $this->pdf->StopTransform();
         }
+
+        // reset fill color
+        $this->pdf->SetFillColor(255, 255, 255);
     }
 
     protected function renderImage($obj, $dataArray = [])
@@ -342,6 +372,56 @@ class PDFParser
         $this->pdf->Line($lineOptions['x1'], $lineOptions['y1'], $lineOptions['x2'], $lineOptions['y2']);
     }
 
+
+    protected function render1DBarcode($obj, $data = [])
+    {
+        // set image scale factor
+        $this->pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+        // options
+        $options = [
+            "x" => $obj['options']['x'] ?? 0,
+            "y" => $obj['options']['y'] ?? 0,
+            "width" => $obj['options']['width'] ?? 10,
+            "height" => $obj['options']['height'] ?? 10,
+            "xres" => $obj['options']['xres'] ?? 0.4,
+            "align" => $obj['options']['align'] ?? "N"
+        ];
+        // style parameters
+        $style = [
+            "type" => $obj['options']['type'] ?? "EAN13",
+            "position" => $obj['options']['position'] ?? "",
+            "align" => $obj['options']['textalign'] ?? "C",
+            "stretch" => $obj['options']['stretch'] ?? false,
+            "fitwidth" => $obj['options']['fitwidth'] ?? true,
+            "cellfitalign" => $obj['options']['cellfitalign'] ?? "",
+            "border" => $obj['options']['border'] ?? true,
+            "hpadding" => $obj['options']['hpadding'] ?? "auto",
+            "vpadding" => $obj['options']['vpadding'] ?? "auto",
+            "fgcolor" => $obj['options']['fgcolor'] ?? [0, 0, 0],
+            "bgcolor" => $obj['options']['bgcolor'] ?? false,
+            "text" => $obj['options']['text'] ?? true,
+            "font" => $obj['options']['font'] ?? 'helvetica',
+            "fontsize" => $obj['options']['fontsize'] ?? 8,
+            "stretchtext" => $obj['options']['stretchtext'] ?? 4,
+        ];
+
+        // process colors
+        if ($style['fgcolor'][0] === "#") {
+            $style['fgcolor'] = $this->convertHexToRGBColor($style['fgcolor']);
+        }
+
+        if ($style['bgcolor'] !== false && $style['bgcolor'][0] === "#") {
+            $style['bgcolor'] = $this->convertHexToRGBColor($style['bgcolor']);
+        }
+
+        // parse string content
+        $content = (isset($obj['content'])) ? $this->parseStringData($obj['content'], $data) : "";
+        $dataContent = (isset($obj['data'])) ? $this->getDataField($obj['data'], $data) : "";
+
+        $this->pdf->write1DBarcode("$content $dataContent", $style['type'], $options['x'], $options['y'], $options['width'], $options['height'], $options['xres'], $style, $options['align']);
+    }
+
     protected function renderQrCode($obj, $data = [])
     {
         // set image scale factor
@@ -377,6 +457,21 @@ class PDFParser
     protected function newLine($newLineSpace = "")
     {
         $this->pdf->Ln($newLineSpace);
+    }
+
+    protected function setFont($obj)
+    {
+        $options = [
+            "font-family" => $obj['font-family'] ?? $this->lastFont,
+            "font-decoration" => $obj['font-decoration'] ?? "",
+            "font-size" => $obj['font-family'] ?? 12
+        ];
+
+        // save last used font
+        $this->lastFont = $options['font-family'];
+
+        // set last font
+        $this->pdf->SetFont($options['font-family'], $options['font-decoration'], $options['font-size']);
     }
 
     protected function renderHeaders($obj)
@@ -482,8 +577,17 @@ class PDFParser
             case 'line':
                 $this->renderLine($tObj);
                 break;
+            case 'barcode':
+                $this->render1DBarcode($tObj, $data);
+                break;
             case 'qrcode':
                 $this->renderQRCode($tObj, $data);
+                break;
+            case 'break':
+                $this->newLine();
+                break;
+            case 'font':
+                $this->setFont($tObj);
                 break;
             case 'header':
                 $this->renderHeaders($tObj);
