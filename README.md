@@ -106,7 +106,7 @@ The footer component will repeat itself at the end of each page.
 ```javascript
 {
   "type": "text",
-  "text": "Hello world!" // string to be shown
+  "text": "Hello world! %d {{variable}}" // string to be shown, can be used %d for the data value
   "data": "person_name" // data array index
   "options": {
     "x": 10,
@@ -125,7 +125,7 @@ The footer component will repeat itself at the end of each page.
 ```javascript
 {
   "type": "cell",
-  "text": "Hello world!" // string to be shown
+  "text": "Hello world! %d {{variable}}" // string to be shown, can be used %d for the data value
   "data": "person_name" // data array index
   "options": {
     "x": 10,
