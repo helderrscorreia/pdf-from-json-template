@@ -211,7 +211,8 @@ class PDFParser
             "font-size" => $obj['options']['font-size'] ?? 12,
             "font-family" => $obj['options']['font-family'] ?? $this->lastFont,
             "text-decoration" => $obj['options']['text-decoration'] ?? '',
-            "rotation" => $obj['options']['rotation'] ?? 0
+            "rotation" => $obj['options']['rotation'] ?? 0,
+            "round" => $obj['options']['round'] ?? null,
         ];
 
         // process color
@@ -233,6 +234,10 @@ class PDFParser
 
         // text parse
         $data = isset($obj['data']) ? $this->getDataField($obj['data'], $dataArray) : "";
+
+        // round data field
+        $data = (is_numeric($data) && $textOptions['round'] !== null) ? number_format($data, $textOptions['round'], ",", ".") : $data;
+
         $text = isset($obj['text']) ? $this->parseStringData($obj['text'], $dataArray) : "";
 
         $this->pdf->SetTextColor($textOptions['color'][0], $textOptions['color'][1], $textOptions['color'][2]);
@@ -252,9 +257,18 @@ class PDFParser
             $posX = $textOptions['x'];
         }
 
+        // process content to show
+        // replace %s as the variable
+        $content = $text . $data;
+        if (strlen(trim($text)) > 0) {
+            if (strpos($text, '%d') !== -1) {
+                $content = str_replace('%d', $data, $text);
+            }
+        }
+
         $this->pdf->StartTransform();
         $this->pdf->Rotate($textOptions['rotation']);
-        $this->pdf->Text($posX, $posY, $text . $data, 0, false, true, 0, 0, "L", $useFillColor);
+        $this->pdf->Text($posX, $posY, $content, 0, false, true, 0, 0, "L", $useFillColor);
         $this->pdf->StopTransform();
 
     }
@@ -274,7 +288,8 @@ class PDFParser
             "text-align" => $obj['options']['text-align'] ?? 'L',
             "border" => $obj['options']['border'] ?? '',
             "multiline" => $obj['options']['multiline'] ?? false,
-            "rotation" => $obj['options']['rotation'] ?? 0
+            "rotation" => $obj['options']['rotation'] ?? 0,
+            "round" => $obj['options']['round'] ?? null,
         ];
 
         // process color
@@ -288,6 +303,11 @@ class PDFParser
 
         // text or data
         $data = isset($obj['data']) ? $this->getDataField($obj['data'], $dataArray) : "";
+
+        // round data field
+        $data = (is_numeric($data) && $cellOptions['round'] !== null) ? number_format($data, $cellOptions['round'], ",", ".") : $data;
+
+        // parse text data
         $text = isset($obj['text']) ? $this->parseStringData($obj['text'], $dataArray) : "";
 
         // set font parameters
@@ -310,13 +330,22 @@ class PDFParser
             $this->pdf->SetX($cellOptions['x']);
         }
 
+        // process content to show
+        // replace %s as the variable
+        $content = $text . $data;
+        if (strlen(trim($text)) > 0) {
+            if (strpos($text, '%d') !== -1) {
+                $content = str_replace('%d', $data, $text);
+            }
+        }
+
         // render cell
         if ($cellOptions['multiline'] === true) {
-            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], $cellOptions['text-align'], $useFillColor);
+            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], $cellOptions['text-align'], $useFillColor);
         } else {
             $this->pdf->StartTransform();
             $this->pdf->Rotate($cellOptions['rotation']);
-            $this->pdf->Cell($cellOptions['width'], $cellOptions['height'], $text . $data, $cellOptions['border'], 0, $cellOptions['text-align'], $useFillColor);
+            $this->pdf->Cell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], 0, $cellOptions['text-align'], $useFillColor);
             $this->pdf->StopTransform();
         }
 
