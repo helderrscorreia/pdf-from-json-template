@@ -77,7 +77,7 @@ After the height it's maxed a new page will be created in order to iterate the r
 ```javascript
 {
   "type": "details",
-  "details": "document.lines", // variable name to be iterated
+  "details": "lines", // variable name to be iterated
   "children": [
       {
         "type": "cell",
