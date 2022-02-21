@@ -231,7 +231,7 @@ The footer component will repeat itself at the end of each page.
 #### QRCode
 ```javascript
 {
-  "type": "box",
+  "type": "qrcode",
   "content": "www.yoursite.com",
   "data": "variable.field" // data array variable
   "options": {
