@@ -168,6 +168,8 @@ Page is the only required component, and must always be placed at the beginning 
 ```javascript
 {
   "type": "font",
-  "font-family": "courier"
+  "font-family": "courier", // TCPDF font name
+  "font-decoration": "", // empty, B or I
+  "font-size": 12
 }
 ```
