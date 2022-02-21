@@ -65,6 +65,7 @@ Page is the only required component, and must always be placed at the beginning 
     "font-size": 12,
     "font-family": "times",
     "color": "#ff00ff",
+    "bg-color": "#0000ff",
     "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
     "rotation": 0
   }
@@ -87,6 +88,7 @@ Page is the only required component, and must always be placed at the beginning 
     "font-size": 12,
     "font-family": "times",
     "color": "#ff00ff",
+    "bg-color": "#0000ff",
     "text-align": "L" // L-left, R-right, C-center, J-justified
     "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
     "rotation": 0 // degrees
