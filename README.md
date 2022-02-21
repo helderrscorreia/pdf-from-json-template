@@ -269,3 +269,14 @@ The footer component will repeat itself at the end of each page.
   "type": "break"
 }
 ```
+
+### Conditional Properties
+Show only on first page.
+```javascript
+{
+  "first_page": true, // show only on first page
+  "not_first_page": true, // show on all pages except first one
+  "last_page": true, // show only on the last page
+  "not_last_page": true, // not show on the last page
+}
+``
