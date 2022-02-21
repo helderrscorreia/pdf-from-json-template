@@ -162,3 +162,12 @@ Page is the only required component, and must always be placed at the beginning 
   }
 }
 ```
+
+
+#### Set Font
+```javascript
+{
+  "type": "font",
+  "font-family": "courier"
+}
+```
