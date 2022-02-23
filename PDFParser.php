@@ -213,6 +213,7 @@ class PDFParser
             "text-decoration" => $obj['options']['text-decoration'] ?? '',
             "rotation" => $obj['options']['rotation'] ?? 0,
             "round" => $obj['options']['round'] ?? null,
+            "utf8" => $obj['options']['utf8'] ?? false,
         ];
 
         // process color
@@ -266,6 +267,9 @@ class PDFParser
             }
         }
 
+        // UTF-8 encoding
+        if ($textOptions['utf8']) $content = utf8_encode($content);
+
         $this->pdf->StartTransform();
         $this->pdf->Rotate($textOptions['rotation']);
         $this->pdf->Text($posX, $posY, $content, 0, false, true, 0, 0, "L", $useFillColor);
@@ -290,6 +294,7 @@ class PDFParser
             "multiline" => $obj['options']['multiline'] ?? false,
             "rotation" => $obj['options']['rotation'] ?? 0,
             "round" => $obj['options']['round'] ?? null,
+            "utf8" => $obj['options']['utf8'] ?? false,
         ];
 
         // process color
@@ -338,6 +343,10 @@ class PDFParser
                 $content = str_replace('%d', $data, $text);
             }
         }
+
+        // UTF-8 encoding
+        if ($cellOptions['utf8']) $content = utf8_encode($content);
+
 
         // render cell
         if ($cellOptions['multiline'] === true) {
@@ -449,7 +458,7 @@ class PDFParser
         $content = (isset($obj['content'])) ? $this->parseStringData($obj['content'], $data) : "";
         $dataContent = (isset($obj['data'])) ? $this->getDataField($obj['data'], $data) : "";
 
-        $this->pdf->write1DBarcode("$content $dataContent", $style['type'], $options['x'], $options['y'], $options['width'], $options['height'], $options['xres'], $style, $options['align']);
+        $this->pdf->write1DBarcode($content.$dataContent, $style['type'], $options['x'], $options['y'], $options['width'], $options['height'], $options['xres'], $style, $options['align']);
     }
 
     protected function renderQrCode($obj, $data = [])
@@ -513,11 +522,11 @@ class PDFParser
 
     protected function renderDetails($obj)
     {
-        if (!empty($this->details)) {
-            $data = $this->details;
+        if (!empty($this->details[$obj['data']])) {
+            $data = $this->details[$obj['data']];
         } else {
             $data = $this->getDataField($obj['data']);
-            $this->details = $data;
+            $this->details[$obj['data']] = $data;
         }
 
         $options = [
@@ -558,7 +567,10 @@ class PDFParser
                 }
 
                 // remove the first data from the details array
-                array_shift($this->details);
+                array_shift($this->details[$obj['data']]);
+
+                //
+                if (empty($this->details[$obj['data']])) unset($this->details[$obj['data']]);
 
                 // get current Y position
                 $posY = $this->pdf->getY();
