@@ -281,4 +281,20 @@ Show only on first page.
   "last_page": true, // show only on the last page
   "not_last_page": true, // not show on the last page
 }
-``
+```
+
+#### SHOW-IF
+```javascript
+{
+"show-if": "company.phone_number" // check if variable has value
+"show-if": "item.price > 5" // compare values
+"show-if": "item.quantity <= options.required_minimum_purchase" // its possible to compare variables also
+}
+```
+
+#### ELSE
+```javascript
+{
+"else": true // if the previous component is false this component will be shown instead
+}
+```
