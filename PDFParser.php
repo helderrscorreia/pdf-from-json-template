@@ -24,6 +24,7 @@ class PDFParser
     private $documentCopies = 1;
     private $currentDocumentCopy = 1;
     private $lastFont = 'times';
+    private $lastShowIf = null;
     private $designMode = false;
 
     public function __construct($jsonTemplate, $fileName = "document.pdf", $designMode = false)
@@ -458,7 +459,7 @@ class PDFParser
         $content = (isset($obj['content'])) ? $this->parseStringData($obj['content'], $data) : "";
         $dataContent = (isset($obj['data'])) ? $this->getDataField($obj['data'], $data) : "";
 
-        $this->pdf->write1DBarcode($content.$dataContent, $style['type'], $options['x'], $options['y'], $options['width'], $options['height'], $options['xres'], $style, $options['align']);
+        $this->pdf->write1DBarcode($content . $dataContent, $style['type'], $options['x'], $options['y'], $options['width'], $options['height'], $options['xres'], $style, $options['align']);
     }
 
     protected function renderQrCode($obj, $data = [])
@@ -590,9 +591,74 @@ class PDFParser
         }
     }
 
+    protected function checkVisibleCondition($tObj, $data = [])
+    {
+        $visible = true;
+
+        if (isset($tObj['show-if'])) {
+            $condition = $tObj['show-if'];
+
+            // extract condition type from the IF property
+            $regexComparer = '/(.+)(>=|<=|==|<|>)(.+)/';
+            preg_match_all($regexComparer, $condition, $matches, PREG_SET_ORDER);
+
+            if (!$this->designMode && empty($matches) && strlen($this->getDataField($condition, $data)) === 0) {
+                // no comparer condition
+                $visible = false;
+            } else {
+                // condition with comparison
+                $dataFields = trim($matches[0][1]);
+                $comparer = trim($matches[0][2]);
+
+                // trim and remove quotes from the value
+                $value = trim(str_replace("'", "", $matches[0][3]));
+
+
+                // check if other value is variable
+                if (!is_numeric($value) && strpos($value, ".") !== false) {
+                    $value = $this->getDataField($value, $data);
+                }
+
+                switch ($comparer) {
+                    case '>':
+                        return ($this->getDataField($dataFields, $data) > $value);
+                    case '<':
+                        return ($this->getDataField($dataFields, $data) < $value);
+                    case '>=':
+                        return ($this->getDataField($dataFields, $data) >= $value);
+                    case '<=':
+                        return ($this->getDataField($dataFields, $data) <= $value);
+                    case '==':
+                        return ($this->getDataField($dataFields, $data) == $value);
+                }
+            }
+        }
+
+        return $visible;
+    }
+
     protected function renderComponent($tObj, $data = [])
     {
         // visibility conditions
+        // ELSE
+        if (isset($tObj['else']) && $this->lastShowIf === true) {
+            $this->lastShowIf = null;
+            return;
+        }
+
+        // SHOW-IF
+        if (isset($tObj['show-if'])) {
+            if (!$this->checkVisibleCondition($tObj, $data)) {
+                $this->lastShowIf = false;
+                return;
+            } else {
+                $this->lastShowIf = true;
+            }
+        } else {
+            $this->lastShowIf = null;
+        }
+
+
         // render only on last or first page
         if (isset($tObj['first_page']) && $tObj['first_page'] === true && $this->pageCount > 1) return;
         if (isset($tObj['not_first_page']) && $tObj['not_first_page'] === true && $this->pageCount == 1) return;
