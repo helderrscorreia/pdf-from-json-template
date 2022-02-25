@@ -272,6 +272,19 @@ The footer component will repeat itself at the end of each page.
 }
 ```
 
+### Global variables
+```javascript
+{
+  "text": "{{current_date}}" // Current date: format YYYY-MM-DD
+  "text": "{{current_time}}" // Current time: format HH:mm:ss
+  "text": "{{page_number}}" // Current page number
+  "text": "{{total_pages}}" // Total document pages
+  "text": "{{current_copy}}" // Current document copy
+  "text": "{{document_copies}}" // Total number of document copies to be generated
+}
+```
+
+
 ### Conditional Properties
 Show only on first page.
 ```javascript
