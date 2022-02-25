@@ -96,6 +96,10 @@ class PDFParser
         $string = str_replace("{{current_date}}", date('Y-m-j'), $string);
         $string = str_replace("{{current_time}}", date('H:i:s'), $string);
 
+        // document copies
+        $string = str_replace("{{current_copy}}", $this->currentDocumentCopy, $string);
+        $string = str_replace("{{document_copies}}", $this->documentCopies, $string);
+
         // details variables
         $string = preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) use ($dataArray) {
             return $this->getDataField(str_replace(" ", "", $match[1]), $dataArray);
