@@ -78,6 +78,12 @@ After the height it's maxed a new page will be created in order to iterate the r
 {
   "type": "details",
   "details": "lines", // variable name to be iterated
+  "options":[
+    "x": 10,
+    "y": 50,
+    "height": 200, // section height per page
+    "row-height": 50  // static row height
+  ],
   "children": [
       {
         "type": "cell",
@@ -156,7 +162,14 @@ The footer component will repeat itself at the end of each page.
     "x": 10,
     "y": 10,
     "width": 50,
-    "height": 5
+    "height": 5,
+    "border": 0,
+    "dpi": 300,
+    "resize": false,
+    "link": "",
+    "align": "",
+    "palign": "",
+    "fitbox": true // auto image resize
   }
 }
 ```
