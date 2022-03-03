@@ -352,10 +352,9 @@ class PDFParser
         // UTF-8 encoding
         if ($cellOptions['utf8']) $content = utf8_encode($content);
 
-
         // render cell
         if ($cellOptions['multiline'] === true) {
-            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], $cellOptions['text-align'], $useFillColor);
+            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], $cellOptions['text-align'], $useFillColor, 0);
         } else {
             $this->pdf->StartTransform();
             $this->pdf->Rotate($cellOptions['rotation']);
@@ -369,15 +368,38 @@ class PDFParser
 
     protected function renderImage($obj, $dataArray = [])
     {
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
         $imageOptions = [
-            "x" => $obj['options']['x'] ?? 0,
-            "y" => $obj['options']['y'] ?? 0,
-            "width" => $obj['options']['width'] ?? 5,
-            "height" => $obj['options']['height'] ?? 40
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
+            "width" => $obj['options']['width'] ?? null,
+            "height" => $obj['options']['height'] ?? null,
+            "border" => $obj['options']['border'] ?? 0,
+            "dpi" => $obj['options']['dpi'] ?? 300,
+            "resize" => $obj['options']['resize'] ?? false,
+            "link" => $obj['options']['link'] ?? "",
+            "align" => $obj['options']['align'] ?? "",
+            "palign" => $obj['options']['palign'] ?? "",
+            "fitbox" => $obj['options']['fitbox'] ?? false,
         ];
 
-        $imgSrc = $this->parseStringData($obj['src'], $dataArray, true);
-        $this->pdf->Image($imgSrc, $imageOptions['x'], $imageOptions['y'], $imageOptions['width'], $imageOptions['height']);
+        $imgSrc = $this->parseStringData($obj['src'], $dataArray);
+
+        // if image URL not empty renders the image
+        if (strlen($imgSrc) > 0)
+            $this->pdf->Image($imgSrc, $imageOptions['x'], $imageOptions['y'], $imageOptions['width'], $imageOptions['height'], '', $imageOptions['link'], $imageOptions['align'], $imageOptions['resize'], $imageOptions['dpi'], $imageOptions['palign'], false, false, $imageOptions['border'], $imageOptions['fitbox'], false, false);
     }
 
     protected function renderBox($obj)
@@ -536,7 +558,7 @@ class PDFParser
 
         $options = [
             "height" => $obj['options']['height'] ?? 100,
-            "width" => $obj['options']['width'] ?? 100,
+            "row-height" => $obj['options']['row-height'] ?? null,
             "x" => $obj['options']['x'] ?? 0,
             "y" => $obj['options']['y'] ?? 0,
             "overflow-margin" => $obj['options']['overflow-margin'] ?? 6,
@@ -558,8 +580,14 @@ class PDFParser
         // render each line
         if (!empty($data)) {
             foreach ($data as $detail) {
+
+                // iterate componentes in each row
                 foreach ($obj['children'] as $childrenComponent) {
                     $this->renderComponent($childrenComponent, $detail);
+                }
+
+                if ($options['row-height'] !== null) {
+                    $this->pdf->setY($this->pdf->getY() + $options['row-height']);
                 }
 
                 // render new line
@@ -574,7 +602,7 @@ class PDFParser
                 // remove the first data from the details array
                 array_shift($this->details[$obj['data']]);
 
-                //
+                // clear data property
                 if (empty($this->details[$obj['data']])) unset($this->details[$obj['data']]);
 
                 // get current Y position
