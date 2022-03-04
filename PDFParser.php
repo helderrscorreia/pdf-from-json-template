@@ -77,6 +77,31 @@ class PDFParser
     }
 
     /**
+     * parse global variables
+     * @param $string
+     * @return array|string|string[]
+     */
+    public function parseGlobalVariables($string, $curlyBraces = true)
+    {
+
+        $curlyBeginning = ($curlyBraces === true) ? "{{" : "";
+        $curlyEnding = ($curlyBraces === true) ? "}}" : "";
+        // page numbers
+        $string = str_replace("{$curlyBeginning}page_number{$curlyEnding}", $this->pdf->getAliasNumPage(), $string);
+        $string = str_replace("{$curlyBeginning}total_pages{$curlyEnding}", $this->pdf->getAliasNbPages(), $string);
+
+        // system variables
+        $string = str_replace("{$curlyBeginning}current_date{$curlyEnding}", date('Y-m-j'), $string);
+        $string = str_replace("{$curlyBeginning}current_time{$curlyEnding}", date('H:i:s'), $string);
+
+        // document copies
+        $string = str_replace("{$curlyBeginning}current_copy{$curlyEnding}", $this->currentDocumentCopy, $string);
+        $string = str_replace("{$curlyBeginning}document_copies{$curlyEnding}", $this->documentCopies, $string);
+
+        return $string;
+    }
+
+    /**
      * parse data in strings
      * @param $string
      * @param array $dataArray
@@ -88,17 +113,9 @@ class PDFParser
             return $string;
         }
 
-        // page numbers
-        $string = str_replace("{{page_number}}", $this->pdf->getAliasNumPage(), $string);
-        $string = str_replace("{{total_pages}}", $this->pdf->getAliasNbPages(), $string);
+        // parse global variables
+        $string = $this->parseGlobalVariables($string);
 
-        // system variables
-        $string = str_replace("{{current_date}}", date('Y-m-j'), $string);
-        $string = str_replace("{{current_time}}", date('H:i:s'), $string);
-
-        // document copies
-        $string = str_replace("{{current_copy}}", $this->currentDocumentCopy, $string);
-        $string = str_replace("{{document_copies}}", $this->documentCopies, $string);
 
         // details variables
         $string = preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) use ($dataArray) {
@@ -651,17 +668,19 @@ class PDFParser
                     $value = $this->getDataField($value, $data);
                 }
 
+                $dataValue = ($this->getDataField($dataFields, $data) . $this->parseGlobalVariables($dataFields));
+
                 switch ($comparer) {
                     case '>':
-                        return ($this->getDataField($dataFields, $data) > $value);
+                        return ($dataValue > $value);
                     case '<':
-                        return ($this->getDataField($dataFields, $data) < $value);
+                        return ($dataValue < $value);
                     case '>=':
-                        return ($this->getDataField($dataFields, $data) >= $value);
+                        return ($dataValue >= $value);
                     case '<=':
-                        return ($this->getDataField($dataFields, $data) <= $value);
+                        return ($dataValue <= $value);
                     case '==':
-                        return ($this->getDataField($dataFields, $data) == $value);
+                        return ($dataValue == $value);
                 }
             }
         }
