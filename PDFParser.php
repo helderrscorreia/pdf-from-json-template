@@ -19,6 +19,7 @@ class PDFParser
     private $fileName;
     private $outputType = "I";
     private $data = [];
+    private $templateVariables = [];
     private $details = [];
     private $pageCount = 0;
     private $documentCopies = 1;
@@ -97,6 +98,11 @@ class PDFParser
         // document copies
         $string = str_replace("{$curlyBeginning}current_copy{$curlyEnding}", $this->currentDocumentCopy, $string);
         $string = str_replace("{$curlyBeginning}document_copies{$curlyEnding}", $this->documentCopies, $string);
+
+        // template variables
+        foreach ($this->templateVariables as $key => $value) {
+            $string = str_replace("[[$key]]", $value, $string);
+        }
 
         return $string;
     }
@@ -668,7 +674,7 @@ class PDFParser
                     $value = $this->getDataField($value, $data);
                 }
 
-                $dataValue = ($this->getDataField($dataFields, $data) . $this->parseGlobalVariables($dataFields));
+                $dataValue = ($this->getDataField($dataFields, $data) . $this->parseGlobalVariables($dataFields, false));
 
                 switch ($comparer) {
                     case '>':
@@ -686,6 +692,18 @@ class PDFParser
         }
 
         return $visible;
+    }
+
+    /**
+     * render template variables
+     * @param $tObj
+     * @return void
+     */
+    protected function renderTemplateVariables($tObj)
+    {
+        if (isset($tObj['data'])) {
+            $this->templateVariables = $tObj['data'];
+        }
     }
 
     protected function renderComponent($tObj, $data = [])
@@ -721,6 +739,9 @@ class PDFParser
         switch ($type) {
             case 'page':
                 $this->renderPage($tObj);
+                break;
+            case 'data':
+                $this->renderTemplateVariables($tObj);
                 break;
             case 'text':
                 $this->renderText($tObj, $data);
