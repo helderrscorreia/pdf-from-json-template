@@ -44,6 +44,20 @@ $pdfParser->setData([
 $pdfParser->render();
 ```
 
+### Data
+Data to be used as variables on the template.
+```javascript
+{
+  "type": "data",
+  "data": {
+    "field1": "Value of field 1",
+    "field2" : "Value of field 2"
+  }
+}
+```
+Data can be used on `text` strings using the following format: `[[field1]]` for example.
+
+
 ### Page
 Page is the only required component, and must always be placed at the beginning of the JSON structure.
 ```javascript
