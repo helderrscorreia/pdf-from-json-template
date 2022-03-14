@@ -576,7 +576,7 @@ class PDFParser
             $data = $this->details[$obj['data']];
         } else {
             $data = $this->getDataField($obj['data']);
-            $this->details[$obj['data']] = $data;
+            if (!empty($data)) $this->details[$obj['data']] = $data;
         }
 
         $options = [
