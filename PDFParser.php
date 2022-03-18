@@ -124,12 +124,12 @@ class PDFParser
 
 
         // details variables
-        $string = preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) use ($dataArray) {
+        $string = preg_replace_callback('/{{(.+)}}/', function ($match) use ($dataArray) {
             return $this->getDataField(str_replace(" ", "", $match[1]), $dataArray);
         }, $string);
 
         // global variables
-        return preg_replace_callback('/{{([\w\s\-\.]+)}}/', function ($match) {
+        return preg_replace_callback('/{{(.+)}}/', function ($match) {
             return $this->getDataField(str_replace(" ", "", $match[1]), $this->data);
         }, $string);
 
@@ -146,6 +146,7 @@ class PDFParser
         if ($this->designMode && !$forceParse) {
             return "[$fieldPath]";
         }
+
 
         $explodedPath = explode('.', $fieldPath);
 
