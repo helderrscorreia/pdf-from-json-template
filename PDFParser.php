@@ -10,7 +10,7 @@
 
 
 // include TCPDF
-include_once(dirname(__FILE__) . '/../tcpdf/tcpdf_import.php');
+include_once(dirname(__FILE__) . '/tcpdf/tcpdf_import.php');
 
 class PDFParser
 {
@@ -250,12 +250,13 @@ class PDFParser
             $textOptions['color'] = $this->convertHexToRGBColor($textOptions['color']);
         }
 
-        if ($textOptions['bg-color'][0] === "#") {
-            $textOptions['bg-color'] = $this->convertHexToRGBColor($textOptions['bg-color']);
-        }
-
         // activate fill color
         if ($textOptions['bg-color'] !== null) {
+
+            if ($textOptions['bg-color'][0] === "#") {
+                $textOptions['bg-color'] = $this->convertHexToRGBColor($textOptions['bg-color']);
+            }
+
             $this->pdf->SetFillColor($textOptions['bg-color'][0], $textOptions['bg-color'][1], $textOptions['bg-color'][2]);
             $useFillColor = true;
         } else {
