@@ -27,6 +27,8 @@ class PDFParser
     private $lastFont = 'times';
     private $lastShowIf = null;
     private $designMode = false;
+    private $detailsCurrentX = 0;
+    private $detailsCurrentY = 0;
 
     public function __construct($jsonTemplate, $fileName = "document.pdf", $designMode = false)
     {
@@ -251,6 +253,14 @@ class PDFParser
             $defaultY += $obj['options']['dy'];
         }
 
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
+        }
+
         $textOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
             "y" => $obj['options']['y'] ?? $defaultY,
@@ -340,6 +350,14 @@ class PDFParser
         $defaultY = $this->pdf->getY();
         if (isset($obj['options']['dy'])) {
             $defaultY += $obj['options']['dy'];
+        }
+
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
 
@@ -440,6 +458,14 @@ class PDFParser
             $defaultY += $obj['options']['dy'];
         }
 
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
+        }
+
         $imageOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
             "y" => $obj['options']['y'] ?? $defaultY,
@@ -474,6 +500,14 @@ class PDFParser
         $defaultY = $this->pdf->getY();
         if (isset($obj['options']['dy'])) {
             $defaultY += $obj['options']['dy'];
+        }
+
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
         $boxOptions = [
@@ -527,6 +561,14 @@ class PDFParser
         $defaultY = $this->pdf->getY();
         if (isset($obj['options']['dy'])) {
             $defaultY += $obj['options']['dy'];
+        }
+
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
         // options
@@ -589,6 +631,14 @@ class PDFParser
         $defaultY = $this->pdf->getY();
         if (isset($obj['options']['dy'])) {
             $defaultY += $obj['options']['dy'];
+        }
+
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
         // options
@@ -678,6 +728,9 @@ class PDFParser
         // render each line
         if (!empty($data)) {
             foreach ($data as $detail) {
+
+                $this->detailsCurrentX = $this->pdf->getX();
+                $this->detailsCurrentY = $this->pdf->getY();
 
                 // iterate componentes in each row
                 foreach ($obj['children'] as $childrenComponent) {
