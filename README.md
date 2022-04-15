@@ -66,7 +66,11 @@ Page is the only required component, and must always be placed at the beginning 
   "options": {
     "format": "A4" // The values can be A4,A5,... and also [sizeX,sizeY],
     "units": "mm",
-    "orientation": "P" // "P" for portrait or "L" for landscape
+    "orientation": "P" // "P" for portrait or "L" for landscape,
+    "topMargin": 10,
+    "leftMargin": 10,
+    "rightMargin": 10,
+    "keepMargins": true, // overwrite default margins on all pages
   }
 }
 ```
