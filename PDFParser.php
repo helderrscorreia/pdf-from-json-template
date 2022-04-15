@@ -232,9 +232,22 @@ class PDFParser
      */
     protected function renderText($obj, $dataArray = [])
     {
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
         $textOptions = [
-            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
-            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
             "color" => $obj['options']['color'] ?? [0, 0, 0],
             "bg-color" => $obj['options']['bg-color'] ?? null,
             "font-size" => $obj['options']['font-size'] ?? 12,
@@ -309,9 +322,24 @@ class PDFParser
 
     protected function renderCell($obj, $dataArray = [])
     {
+
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
+
         $cellOptions = [
-            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
-            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
             "width" => $obj['options']['width'] ?? 50,
             "height" => $obj['options']['height'] ?? 5,
             "color" => $obj['options']['color'] ?? [0, 0, 0],
@@ -429,9 +457,22 @@ class PDFParser
 
     protected function renderBox($obj)
     {
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
         $boxOptions = [
-            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
-            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
             "width" => $obj['options']['width'] ?? 0,
             "height" => $obj['options']['height'] ?? 0,
             "border-width" => $obj['options']['border-width'] ?? 0.1,
@@ -469,10 +510,23 @@ class PDFParser
         // set image scale factor
         $this->pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
         // options
         $options = [
-            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
-            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
             "width" => $obj['options']['width'] ?? 10,
             "height" => $obj['options']['height'] ?? 10,
             "xres" => $obj['options']['xres'] ?? 0.4,
@@ -518,10 +572,23 @@ class PDFParser
         // set image scale factor
         $this->pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
         // options
         $options = [
-            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
-            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
             "width" => $obj['options']['width'] ?? 10,
             "height" => $obj['options']['height'] ?? 10
         ];
