@@ -175,6 +175,8 @@ The footer component will repeat itself at the end of each page.
   "options": {
     "x": 10,
     "y": 10,
+    "dx": 10, // relative X position to the current X
+    "dy": 10, // relative Y position to the current Y
     "width": 50,
     "height": 5,
     "border": 0,
@@ -266,6 +268,8 @@ The footer component will repeat itself at the end of each page.
   "options": {
     "x": 10,
     "y": 10,
+    "dx": 10, // relative X position to the current X
+    "dy": 10, // relative Y position to the current Y
     "width": 50,
     "border": true,
     "vpadding": "auto",
