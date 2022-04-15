@@ -131,6 +131,8 @@ The footer component will repeat itself at the end of each page.
   "options": {
     "x": 10,
     "y": 10,
+    "dx": 10, // relative X position to the current X
+    "dy": 10, // relative Y position to the current Y
     "font-size": 12,
     "font-family": "times",
     "color": "#ff00ff",
@@ -151,6 +153,8 @@ The footer component will repeat itself at the end of each page.
   "options": {
     "x": 10,
     "y": 10,
+    "dx": 10, // relative X position to the current X
+    "dy": 10, // relative Y position to the current Y
     "width": 50,
     "height": 5,
     "border": 0, // 0-disable, 1-enable
@@ -214,6 +218,8 @@ The footer component will repeat itself at the end of each page.
   "options": {
     "x": 10,
     "y": 10,
+    "dx": 10, // relative X position to the current X
+    "dy": 10, // relative Y position to the current Y
     "width": 50,
     "height": 50,
     "border-width": 0.1,
@@ -235,6 +241,8 @@ The footer component will repeat itself at the end of each page.
     "type": "EAN13",
     "x": 10,
     "y": 10,
+    "dx": 10, // relative X position to the current X
+    "dy": 10, // relative Y position to the current Y
     "width": 50,
     "height": 10,
     "xres": 0.4,
