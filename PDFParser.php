@@ -201,6 +201,11 @@ class PDFParser
                 "printHeader" => $obj['options']['printHeader'] ?? false,
                 "printFooter" => $obj['options']['printFooter'] ?? false,
                 "autoPageBreak" => $obj['options']['autoPageBreak'] ?? true,
+                "topMargin" => $obj['options']['topMargin'] ?? 10,
+                "leftMargin" => $obj['options']['leftMargin'] ?? 10,
+                "rightMargin" => $obj['options']['rightMargin'] ?? 10,
+                "keepMargins" => $obj['options']['keepMargins'] ?? true,
+
             ];
 
             // parse format array
@@ -217,6 +222,7 @@ class PDFParser
             $this->pdf->setPrintHeader($pageSetup['printHeader']);
             $this->pdf->setPrintFooter($pageSetup['printFooter']);
             $this->pdf->setAutoPageBreak($pageSetup['autoPageBreak']);
+            $this->pdf->setMargins($pageSetup['leftMargin'], $pageSetup['topMargin'], $pageSetup['rightMargin'], $pageSetup['keepMargins']);
         }
 
         // add new page
