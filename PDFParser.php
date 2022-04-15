@@ -738,7 +738,7 @@ class PDFParser
                 }
 
                 if ($options['row-height'] !== null) {
-                    $this->pdf->setY($this->pdf->getY() + $options['row-height']);
+                    $this->pdf->setY($this->detailsCurrentY + $options['row-height']);
                 }
 
                 // render new line
