@@ -233,8 +233,8 @@ class PDFParser
     protected function renderText($obj, $dataArray = [])
     {
         $textOptions = [
-            "x" => $obj['options']['x'] ?? 0,
-            "y" => $obj['options']['y'] ?? 0,
+            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
+            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "color" => $obj['options']['color'] ?? [0, 0, 0],
             "bg-color" => $obj['options']['bg-color'] ?? null,
             "font-size" => $obj['options']['font-size'] ?? 12,
@@ -310,8 +310,8 @@ class PDFParser
     protected function renderCell($obj, $dataArray = [])
     {
         $cellOptions = [
-            "x" => $obj['options']['x'] ?? 0,
-            "y" => $obj['options']['y'] ?? 0,
+            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
+            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "width" => $obj['options']['width'] ?? 50,
             "height" => $obj['options']['height'] ?? 5,
             "color" => $obj['options']['color'] ?? [0, 0, 0],
@@ -430,8 +430,8 @@ class PDFParser
     protected function renderBox($obj)
     {
         $boxOptions = [
-            "x" => $obj['options']['x'] ?? 0,
-            "y" => $obj['options']['y'] ?? 0,
+            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
+            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "width" => $obj['options']['width'] ?? 0,
             "height" => $obj['options']['height'] ?? 0,
             "border-width" => $obj['options']['border-width'] ?? 0.1,
@@ -471,8 +471,8 @@ class PDFParser
 
         // options
         $options = [
-            "x" => $obj['options']['x'] ?? 0,
-            "y" => $obj['options']['y'] ?? 0,
+            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
+            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "width" => $obj['options']['width'] ?? 10,
             "height" => $obj['options']['height'] ?? 10,
             "xres" => $obj['options']['xres'] ?? 0.4,
@@ -520,8 +520,8 @@ class PDFParser
 
         // options
         $options = [
-            "x" => $obj['options']['x'] ?? 0,
-            "y" => $obj['options']['y'] ?? 0,
+            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
+            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "width" => $obj['options']['width'] ?? 10,
             "height" => $obj['options']['height'] ?? 10
         ];
@@ -584,8 +584,8 @@ class PDFParser
         $options = [
             "height" => $obj['options']['height'] ?? 100,
             "row-height" => $obj['options']['row-height'] ?? null,
-            "x" => $obj['options']['x'] ?? 0,
-            "y" => $obj['options']['y'] ?? 0,
+            "x" => $obj['options']['x'] ?? $this->pdf->getX(),
+            "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "overflow-margin" => $obj['options']['overflow-margin'] ?? 6,
         ];
 
