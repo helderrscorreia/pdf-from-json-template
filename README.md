@@ -146,7 +146,8 @@ The footer component will repeat itself at the end of each page.
     "bg-color": "#0000ff",
     "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
     "rotation": 0,
-    "utf8": false // force UTF-8 encoding
+    "utf8": false, // force UTF-8 encoding
+    "html_decoding": true // convert HTML entities to chars
   }
 }
 ```
@@ -175,7 +176,8 @@ The footer component will repeat itself at the end of each page.
     "text-align": "L" // L-left, R-right, C-center, J-justified
     "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
     "rotation": 0 // degrees,
-    "utf8": false // force UTF-8 encoding
+    "utf8": false, // force UTF-8 encoding
+    "html_decoding": true // convert HTML entities to chars
   }
 }
 ```
