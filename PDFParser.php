@@ -789,32 +789,34 @@ class PDFParser
                 // no comparer condition
                 $visible = false;
             } else {
-                // condition with comparison
-                $dataFields = trim($matches[0][1]);
-                $comparer = trim($matches[0][2]);
+                if (!empty($matches)) {
+                    // condition with comparison
+                    $dataFields = trim($matches[0][1]);
+                    $comparer = trim($matches[0][2]);
 
-                // trim and remove quotes from the value
-                $value = trim(str_replace("'", "", $matches[0][3]));
+                    // trim and remove quotes from the value
+                    $value = trim(str_replace("'", "", $matches[0][3]));
 
 
-                // check if other value is variable
-                if (!is_numeric($value) && strpos($value, ".") !== false) {
-                    $value = $this->getDataField($value, $data);
-                }
+                    // check if other value is variable
+                    if (!is_numeric($value) && strpos($value, ".") !== false) {
+                        $value = $this->getDataField($value, $data);
+                    }
 
-                $dataValue = ($this->getDataField($dataFields, $data) . $this->parseGlobalVariables($dataFields, false));
+                    $dataValue = ($this->getDataField($dataFields, $data) . $this->parseGlobalVariables($dataFields, false));
 
-                switch ($comparer) {
-                    case '>':
-                        return ($dataValue > $value);
-                    case '<':
-                        return ($dataValue < $value);
-                    case '>=':
-                        return ($dataValue >= $value);
-                    case '<=':
-                        return ($dataValue <= $value);
-                    case '==':
-                        return ($dataValue == $value);
+                    switch ($comparer) {
+                        case '>':
+                            return ($dataValue > $value);
+                        case '<':
+                            return ($dataValue < $value);
+                        case '>=':
+                            return ($dataValue >= $value);
+                        case '<=':
+                            return ($dataValue <= $value);
+                        case '==':
+                            return ($dataValue == $value);
+                    }
                 }
             }
         }
