@@ -272,6 +272,7 @@ class PDFParser
             "rotation" => $obj['options']['rotation'] ?? 0,
             "round" => $obj['options']['round'] ?? null,
             "utf8" => $obj['options']['utf8'] ?? false,
+            "html_decoding" => $obj['options']['html_decoding'] ?? true,
         ];
 
         // process color
@@ -328,6 +329,9 @@ class PDFParser
 
         // UTF-8 encoding
         if ($textOptions['utf8']) $content = utf8_encode($content);
+        
+        // HTML entities decoding
+        if ($textOptions['html_decoding']) $content = html_entity_decode($content);
 
         $this->pdf->StartTransform();
         $this->pdf->Rotate($textOptions['rotation']);
@@ -377,6 +381,7 @@ class PDFParser
             "rotation" => $obj['options']['rotation'] ?? 0,
             "round" => $obj['options']['round'] ?? null,
             "utf8" => $obj['options']['utf8'] ?? false,
+            "html_decoding" => $obj['options']['html_decoding'] ?? true,
         ];
 
         // process color
@@ -428,6 +433,9 @@ class PDFParser
 
         // UTF-8 encoding
         if ($cellOptions['utf8']) $content = utf8_encode($content);
+        
+        // HTML entities decoding
+        if ($cellOptions['html_decoding']) $content = html_entity_decode($content);
 
         // render cell
         if ($cellOptions['multiline'] === true) {
