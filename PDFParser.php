@@ -10,7 +10,7 @@
 
 
 // include TCPDF
-include_once(dirname(__FILE__) . '/tcpdf/tcpdf_import.php');
+include_once(dirname(__FILE__) . '/../tcpdf/tcpdf_import.php');
 
 class PDFParser
 {
@@ -19,8 +19,11 @@ class PDFParser
     private $fileName;
     private $outputType = "I";
     private $data = [];
+    private $currentDetailsDataField = "";
     private $templateVariables = [];
     private $details = [];
+    private $lastGroupHeaders = [];
+    private $printGroupHeader = [];
     private $pageCount = 0;
     private $documentCopies = 1;
     private $currentDocumentCopy = 1;
@@ -329,7 +332,7 @@ class PDFParser
 
         // UTF-8 encoding
         if ($textOptions['utf8']) $content = utf8_encode($content);
-        
+
         // HTML entities decoding
         if ($textOptions['html_decoding']) $content = html_entity_decode($content);
 
@@ -382,7 +385,13 @@ class PDFParser
             "round" => $obj['options']['round'] ?? null,
             "utf8" => $obj['options']['utf8'] ?? false,
             "html_decoding" => $obj['options']['html_decoding'] ?? true,
+            "group-header" => $obj['options']['group-header'] ?? false,
         ];
+
+        // check if group header can be printed
+        if ($cellOptions['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
 
         // process color
         if ($cellOptions['color'][0] === "#") {
@@ -433,7 +442,7 @@ class PDFParser
 
         // UTF-8 encoding
         if ($cellOptions['utf8']) $content = utf8_encode($content);
-        
+
         // HTML entities decoding
         if ($cellOptions['html_decoding']) $content = html_entity_decode($content);
 
@@ -676,9 +685,20 @@ class PDFParser
         $this->pdf->write2DBarcode($content . $dataContent, 'QRCODE,H', $options['x'], $options['y'], $options['width'], $options['height'], $style);
     }
 
-    protected function newLine($newLineSpace = "")
+    protected function newLine($obj = [], $newLineSpace = "")
     {
+        $options = [
+            "group-header" => $obj['options']['group-header'] ?? false,
+        ];
+
+        // check if group header can be printed
+        if ($options['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
+
         $this->pdf->Ln($newLineSpace);
+
+        return true;
     }
 
     protected function setFont($obj)
@@ -712,12 +732,16 @@ class PDFParser
             if (!empty($data)) $this->details[$obj['data']] = $data;
         }
 
+        // set current details data field
+        $this->currentDetailsDataField = $obj['data'];
+
         $options = [
             "height" => $obj['options']['height'] ?? 100,
             "row-height" => $obj['options']['row-height'] ?? null,
             "x" => $obj['options']['x'] ?? $this->pdf->getX(),
             "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "overflow-margin" => $obj['options']['overflow-margin'] ?? 6,
+            "group-by" => $obj['options']['group-by'] ?? false,
         ];
 
         // set Y position
@@ -729,13 +753,39 @@ class PDFParser
             $this->pdf->setX($options['x']);
         }
 
-
         $startY = $this->pdf->getY();
         $endY = $startY + $options['height'];
 
+        // group by
+        if ($options['group-by'] !== false && !empty($data) && !isset($this->lastGroupHeaders[$obj['data']])) {
+
+            // store group field name
+            $groupField = $options['group-by'];
+
+            // sort array
+            usort($data, function ($a, $b) use ($groupField) {
+                return strcmp($a[$groupField], $b[$groupField]);
+            });
+
+            // store changed data to the sorted one
+            if (!empty($data)) $this->details[$obj['data']] = $data;
+
+            // initialize group headers
+            $this->lastGroupHeaders[$obj['data']] = [];
+        }
+
         // render each line
         if (!empty($data)) {
+
             foreach ($data as $detail) {
+
+                // check if header already has already been rendered
+                if ($options['group-by'] && ((!isset($this->lastGroupHeaders[$obj['data']][$options['group-by']])) || (isset($this->lastGroupHeaders[$obj['data']][$options['group-by']]) && $this->lastGroupHeaders[$obj['data']][$options['group-by']] !== $detail[$options['group-by']]))) {
+                    $this->lastGroupHeaders[$obj['data']][$options['group-by']] = $detail[$options['group-by']];
+                    $this->printGroupHeader[$obj['data']] = true; // tell children with group-header to be processed
+                } elseif ($options['group-by'] && isset($this->lastGroupHeaders[$obj['data']][$options['group-by']])) {
+                    $this->printGroupHeader[$obj['data']] = false; // avoid group-header to components to be processed
+                }
 
                 $this->detailsCurrentX = $this->pdf->getX();
                 $this->detailsCurrentY = $this->pdf->getY();
@@ -750,7 +800,7 @@ class PDFParser
                 }
 
                 // render new line
-                $this->newLine();
+                $this->newLine(null);
 
                 // set X position again
                 // in FPDF X only can be set after Y, Y default X to 10
@@ -844,7 +894,7 @@ class PDFParser
         }
     }
 
-    protected function renderComponent($tObj, $data = [])
+    protected function renderComponent($tObj, $data = [], $dataName = "")
     {
         // visibility conditions
         // ELSE
@@ -903,7 +953,7 @@ class PDFParser
                 $this->renderQRCode($tObj, $data);
                 break;
             case 'break':
-                $this->newLine();
+                $this->newLine($tObj);
                 break;
             case 'font':
                 $this->setFont($tObj);
@@ -927,7 +977,13 @@ class PDFParser
         // document copies iteration
         for ($this->currentDocumentCopy = 1; $this->currentDocumentCopy <= $this->documentCopies; $this->currentDocumentCopy++) {
 
+            // page counter
             $this->pageCount = 0;
+
+            // clear all data arrays on each new copy
+            unset($this->printGroupHeader);
+            unset($this->lastGroupHeaders);
+            unset($this->currentDetailsDataField);
 
             // render components checking if there are any details remaining
             do {
