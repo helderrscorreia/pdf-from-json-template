@@ -276,7 +276,13 @@ class PDFParser
             "round" => $obj['options']['round'] ?? null,
             "utf8" => $obj['options']['utf8'] ?? false,
             "html_decoding" => $obj['options']['html_decoding'] ?? true,
+            "group-header" => $obj['options']['group-header'] ?? false,
         ];
+
+        // check if group header can be printed
+        if ($textOptions['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
 
         // process color
         if ($textOptions['color'][0] === "#") {
@@ -495,7 +501,13 @@ class PDFParser
             "align" => $obj['options']['align'] ?? "",
             "palign" => $obj['options']['palign'] ?? "",
             "fitbox" => $obj['options']['fitbox'] ?? false,
+            "group-header" => $obj['options']['group-header'] ?? false,
         ];
+
+        // check if group header can be printed
+        if ($imageOptions['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
 
         $imgSrc = $this->parseStringData($obj['src'], $dataArray);
 
@@ -534,8 +546,14 @@ class PDFParser
             "height" => $obj['options']['height'] ?? 0,
             "border-width" => $obj['options']['border-width'] ?? 0.1,
             "border-color" => $obj['options']['border-color'] ?? [0, 0, 0],
-            "fill-color" => $obj['options']['fill-color'] ?? [255, 255, 255]
+            "fill-color" => $obj['options']['fill-color'] ?? [255, 255, 255],
+            "group-header" => $obj['options']['group-header'] ?? false,
         ];
+
+        // check if group header can be printed
+        if ($boxOptions['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
 
         $this->pdf->SetLineWidth($boxOptions['border-width']);
         $this->pdf->SetDrawColor($boxOptions['border-color'][0], $boxOptions['border-color'][1], $boxOptions['border-color'][2]);
@@ -552,8 +570,14 @@ class PDFParser
             "x2" => $obj['options']['x2'] ?? 0,
             "y2" => $obj['options']['y2'] ?? 0,
             "width" => $obj['options']['width'] ?? 0.1,
-            "color" => $obj['options']['color'] ?? [0, 0, 0]
+            "color" => $obj['options']['color'] ?? [0, 0, 0],
+            "group-header" => $obj['options']['group-header'] ?? false,
         ];
+
+        // check if group header can be printed
+        if ($lineOptions['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
 
         $this->pdf->SetLineWidth($lineOptions['width']);
         $this->pdf->SetDrawColor($lineOptions['color'][0], $lineOptions['color'][1], $lineOptions['color'][2]);
@@ -595,8 +619,14 @@ class PDFParser
             "width" => $obj['options']['width'] ?? 10,
             "height" => $obj['options']['height'] ?? 10,
             "xres" => $obj['options']['xres'] ?? 0.4,
-            "align" => $obj['options']['align'] ?? "N"
+            "align" => $obj['options']['align'] ?? "N",
+            "group-header" => $obj['options']['group-header'] ?? false,
         ];
+
+        // check if group header can be printed
+        if ($options['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
         // style parameters
         $style = [
             "type" => $obj['options']['type'] ?? "EAN13",
@@ -663,8 +693,14 @@ class PDFParser
             "x" => $obj['options']['x'] ?? $defaultX,
             "y" => $obj['options']['y'] ?? $defaultY,
             "width" => $obj['options']['width'] ?? 10,
-            "height" => $obj['options']['height'] ?? 10
+            "height" => $obj['options']['height'] ?? 10,
+            "group-header" => $obj['options']['group-header'] ?? false,
         ];
+
+        // check if group header can be printed
+        if ($options['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
 
         // set style for barcode
         $style = array(
