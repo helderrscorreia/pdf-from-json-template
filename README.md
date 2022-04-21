@@ -101,7 +101,8 @@ After the height it's maxed a new page will be created in order to iterate the r
     "y": 50,
     "height": 200, // section height per page
     "row-height": 50,  // static row height
-    "overflow-margin": 6 // when data aproaches this end margin generates new page
+    "overflow-margin": 6, // when data aproaches this end margin generates new page
+    "group-by": "field_name" // group details using the specified field name
   ],
   "children": [
       {
@@ -147,7 +148,8 @@ The footer component will repeat itself at the end of each page.
     "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
     "rotation": 0,
     "utf8": false, // force UTF-8 encoding
-    "html_decoding": true // convert HTML entities to chars
+    "html_decoding": true, // convert HTML entities to chars,
+    "group-header": false // only render on each details group header
   }
 }
 ```
@@ -177,7 +179,8 @@ The footer component will repeat itself at the end of each page.
     "text-decoration": "B", // B-Bold, I-Italic, empty-none, can be used together
     "rotation": 0 // degrees,
     "utf8": false, // force UTF-8 encoding
-    "html_decoding": true // convert HTML entities to chars
+    "html_decoding": true, // convert HTML entities to chars
+    "group-header": false // only render on each details group header
   }
 }
 ```
@@ -202,7 +205,8 @@ The footer component will repeat itself at the end of each page.
     "link": "",
     "align": "",
     "palign": "",
-    "fitbox": true // auto image resize
+    "fitbox": true, // auto image resize
+    "group-header": false // only render on each details group header
   }
 }
 ```
@@ -218,7 +222,8 @@ The footer component will repeat itself at the end of each page.
     "x2" => 40,
     "y2" => 10,
     "width" => 0.1 // line width
-    "color" => [0,0,0] // RGB array
+    "color" => [0,0,0], // RGB array
+    "group-header": false // only render on each details group header
    }
 }
 ```
@@ -239,7 +244,8 @@ The footer component will repeat itself at the end of each page.
     "height": 50,
     "border-width": 0.1,
     "border-color": [0,0,0],
-    "fill-color": [255,255,255]
+    "fill-color": [255,255,255],
+    "group-header": false // only render on each details group header
   }
 }
 ```
@@ -264,6 +270,7 @@ The footer component will repeat itself at the end of each page.
     "height": 10,
     "xres": 0.4,
     "align": "N",
+    "group-header": false // only render on each details group header
    "position": "",
    "textalign": "C",
    "stretch": false,
@@ -298,6 +305,8 @@ The footer component will repeat itself at the end of each page.
     "detailsX": 10, // details row relative X
     "detailsY": 10, // details row relative Y
     "width": 50,
+    "height": 50,
+    "group-header": false, // only render on each details group header
     "border": true,
     "vpadding": "auto",
     "hpadding": "auto",
