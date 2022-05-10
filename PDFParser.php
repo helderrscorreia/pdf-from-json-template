@@ -10,7 +10,7 @@
 
 
 // include TCPDF
-include_once(dirname(__FILE__) . '/../tcpdf/tcpdf_import.php');
+include_once(dirname(__FILE__) . '/../../tcpdf/tcpdf_import.php');
 
 class PDFParser
 {
@@ -19,6 +19,7 @@ class PDFParser
     private $fileName;
     private $outputType = "I";
     private $data = [];
+    private $cacheFolder = __DIR__ . "/pdf_cache/";
     private $currentDetailsDataField = "";
     private $templateVariables = [];
     private $details = [];
@@ -502,6 +503,7 @@ class PDFParser
             "palign" => $obj['options']['palign'] ?? "",
             "fitbox" => $obj['options']['fitbox'] ?? false,
             "group-header" => $obj['options']['group-header'] ?? false,
+            "use-cache" => $obj['options']['use-cache'] ?? true,
         ];
 
         // check if group header can be printed
@@ -509,7 +511,36 @@ class PDFParser
             return false;
         }
 
+        // parse image path variables
         $imgSrc = $this->parseStringData($obj['src'], $dataArray);
+
+
+        /* IMAGE CACHE MANAGEMENT */
+        // image cache is enabled by default
+        if ($imageOptions['use-cache']) {
+            $imageHash = sha1($imgSrc);
+            $cacheFilePath = $this->cacheFolder . $imageHash;
+
+            // check if cache folder exists
+            if (!file_exists($this->cacheFolder)) {
+                mkdir($this->cacheFolder, 0777, true);
+            }
+
+            if (file_exists($cacheFilePath)) {
+                // set imagepath as the local cache file
+                $imgSrc = $cacheFilePath;
+            } else {
+                // download file to cache using cURL
+                $my_ch = curl_init($imgSrc);
+                $fp = fopen($cacheFilePath, 'wb');
+                curl_setopt($my_ch, CURLOPT_FILE, $fp);
+                curl_setopt($my_ch, CURLOPT_HEADER, 0);
+                curl_exec($my_ch);
+                curl_close($my_ch);
+                fclose($fp);
+            }
+        }
+
 
         // if image URL not empty renders the image
         if (strlen($imgSrc) > 0)
