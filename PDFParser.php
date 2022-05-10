@@ -10,11 +10,11 @@
 
 
 // include TCPDF
-include_once(dirname(__FILE__) . '/../../tcpdf/tcpdf_import.php');
+include_once(dirname(__FILE__) . '/../tcpdf/tcpdf_import.php');
 
 class PDFParser
 {
-    private $jsonTemplate;
+    privfate $jsonTemplate;
     private $pdf;
     private $fileName;
     private $outputType = "I";
