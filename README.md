@@ -206,7 +206,8 @@ The footer component will repeat itself at the end of each page.
     "align": "",
     "palign": "",
     "fitbox": true, // auto image resize
-    "group-header": false // only render on each details group header
+    "group-header": false, // only render on each details group header,
+    "use-cache": true, // control image cache in order to force refresh
   }
 }
 ```
