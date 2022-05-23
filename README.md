@@ -171,6 +171,7 @@ The footer component will repeat itself at the end of each page.
     "height": 5,
     "border": 0, // 0-disable, 1-enable
     "multiline": false,
+    "multiline-break": 0 // 0 - continues on the right, 1 - new line and beginning of the page, 2 - below
     "font-size": 12,
     "font-family": "times",
     "color": "#ff00ff",
@@ -336,7 +337,11 @@ The footer component will repeat itself at the end of each page.
 #### Line break
 ```javascript
 {
-  "type": "break"
+  "type": "break",
+  "options" :{
+    "group-header": false,
+    "height": 4
+  }
 }
 ```
 
