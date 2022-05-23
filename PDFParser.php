@@ -14,7 +14,7 @@ include_once(dirname(__FILE__) . '/../tcpdf/tcpdf_import.php');
 
 class PDFParser
 {
-    privfate $jsonTemplate;
+    private $jsonTemplate;
     private $pdf;
     private $fileName;
     private $outputType = "I";
@@ -23,6 +23,7 @@ class PDFParser
     private $currentDetailsDataField = "";
     private $templateVariables = [];
     private $details = [];
+    private $maxDetailsY = [];
     private $lastGroupHeaders = [];
     private $printGroupHeader = [];
     private $pageCount = 0;
@@ -33,6 +34,16 @@ class PDFParser
     private $designMode = false;
     private $detailsCurrentX = 0;
     private $detailsCurrentY = 0;
+
+    public function clearCache()
+    {
+        $files = glob("$this->cacheFolder*"); // get all file names
+        foreach ($files as $file) { // iterate files
+            if (is_file($file)) {
+                unlink($file); // delete file
+            }
+        }
+    }
 
     public function __construct($jsonTemplate, $fileName = "document.pdf", $designMode = false)
     {
@@ -90,7 +101,6 @@ class PDFParser
      */
     public function parseGlobalVariables($string, $curlyBraces = true)
     {
-
         $curlyBeginning = ($curlyBraces === true) ? "{{" : "";
         $curlyEnding = ($curlyBraces === true) ? "}}" : "";
         // page numbers
@@ -265,6 +275,7 @@ class PDFParser
             $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
+
         $textOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
             "y" => $obj['options']['y'] ?? $defaultY,
@@ -388,6 +399,7 @@ class PDFParser
             "text-align" => $obj['options']['text-align'] ?? 'L',
             "border" => $obj['options']['border'] ?? '',
             "multiline" => $obj['options']['multiline'] ?? false,
+            "multiline-break" => $obj['options']['multiline-break'] ?? 0,
             "rotation" => $obj['options']['rotation'] ?? 0,
             "round" => $obj['options']['round'] ?? null,
             "utf8" => $obj['options']['utf8'] ?? false,
@@ -455,7 +467,7 @@ class PDFParser
 
         // render cell
         if ($cellOptions['multiline'] === true) {
-            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], $cellOptions['text-align'], $useFillColor, 0);
+            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], $cellOptions['text-align'], $useFillColor, $cellOptions['multiline-break']);
         } else {
             $this->pdf->StartTransform();
             $this->pdf->Rotate($cellOptions['rotation']);
@@ -752,10 +764,11 @@ class PDFParser
         $this->pdf->write2DBarcode($content . $dataContent, 'QRCODE,H', $options['x'], $options['y'], $options['width'], $options['height'], $style);
     }
 
-    protected function newLine($obj = [], $newLineSpace = "")
+    protected function newLine($obj = [], $newLineSpace = 4)
     {
         $options = [
             "group-header" => $obj['options']['group-header'] ?? false,
+            "height" => $obj['options']['height'] ?? $newLineSpace,
         ];
 
         // check if group header can be printed
@@ -763,7 +776,7 @@ class PDFParser
             return false;
         }
 
-        $this->pdf->Ln($newLineSpace);
+        $this->pdf->Ln($options['height']);
 
         return true;
     }
@@ -788,6 +801,31 @@ class PDFParser
         foreach ($obj['children'] as $headerComponent) {
             $this->renderComponent($headerComponent);
         }
+    }
+
+
+    protected function currentDetailsMaxY($dataTable)
+    {
+
+        // current coordinates
+        $currentX = $this->pdf->getX();
+        $currentY = $this->pdf->getY();
+
+        // check if current details has already registered max Y position
+        $maxDetailsY = (isset($this->maxDetailsY[$dataTable])) ? $this->maxDetailsY[$dataTable] : $currentY;
+
+        // check max Y adding a line break in order to move the caret to the end of the last rendered element
+        $this->newLine([], 0);
+        $newY = $this->pdf->getY();
+        $maxDetailsY = ($newY > $maxDetailsY) ? $newY : $maxDetailsY;
+
+        // store current Y max position
+        $this->maxDetailsY[$dataTable] = $maxDetailsY;
+
+        // restore current coordinates
+        $this->pdf->setXY($currentX, $currentY);
+
+        return $maxDetailsY;
     }
 
     protected function renderDetails($obj)
@@ -844,6 +882,8 @@ class PDFParser
         // render each line
         if (!empty($data)) {
 
+            $this->maxDetailsY[$obj['data']] = $this->pdf->getY();
+
             foreach ($data as $detail) {
 
                 // check if header already has already been rendered
@@ -855,19 +895,25 @@ class PDFParser
                 }
 
                 $this->detailsCurrentX = $this->pdf->getX();
-                $this->detailsCurrentY = $this->pdf->getY();
+                $this->detailsCurrentY = $this->currentDetailsMaxY($obj['data']);
+
 
                 // iterate componentes in each row
                 foreach ($obj['children'] as $childrenComponent) {
+                    // render child component
                     $this->renderComponent($childrenComponent, $detail);
+
+                    /* update maximum Y */
+                    $this->currentDetailsMaxY($obj['data']);
                 }
 
+                $maxDetailsY = $this->currentDetailsMaxY($obj['data']);
                 if ($options['row-height'] !== null) {
-                    $this->pdf->setY($this->detailsCurrentY + $options['row-height']);
+                    $this->pdf->setY($maxDetailsY + $options['row-height']);
                 }
 
                 // render new line
-                $this->newLine(null);
+                $this->newLine();
 
                 // set X position again
                 // in FPDF X only can be set after Y, Y default X to 10
