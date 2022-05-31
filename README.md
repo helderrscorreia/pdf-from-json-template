@@ -71,6 +71,10 @@ Page is the only required component, and must always be placed at the beginning 
     "leftMargin": 10,
     "rightMargin": 10,
     "keepMargins": true, // overwrite default margins on all pages
+    "autoPageBreak": true,
+    "encoding": "UTF-8",
+    "printHeader": false,
+    "printFooter": false
   }
 }
 ```
