@@ -358,7 +358,7 @@ The footer component will repeat itself at the end of each page.
   "text": "{{total_pages}}" // Total document pages
   "text": "{{current_copy}}" // Current document copy
   "text": "{{document_copies}}" // Total number of document copies to be generated
-   "text":  "[[max_y_DATATABLE]]" //Global variable to obtain the actual selected table
+   "text":  "[[max_y_DETAILSDATATABLE]]" //Global variable to obtain the actual selected table, DETAILSDATATABLE must be replaced by the details section data field value.
 
 }
 ```
