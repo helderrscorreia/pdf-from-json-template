@@ -103,6 +103,7 @@ After the height it's maxed a new page will be created in order to iterate the r
   "options":[
     "x": 10,
     "y": 50,
+    "margin": 4, // margin between each line
     "height": 200, // section height per page
     "row-height": 50,  // static row height
     "overflow-margin": 6, // when data aproaches this end margin generates new page
