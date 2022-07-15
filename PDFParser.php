@@ -244,6 +244,10 @@ class PDFParser
         // add new page
         $this->pdf->AddPage();
 
+        /*  clear position placholders */
+        $this->maxDetailsY = [];
+        $this->detailsCurrentY = $this->detailsCurrentX = 0;
+
         // increment page count
         $this->pageCount++;
     }
@@ -555,8 +559,12 @@ class PDFParser
 
 
         // if image URL not empty renders the image
-        if (strlen($imgSrc) > 0)
+        if (strlen($imgSrc) > 0) {
             $this->pdf->Image($imgSrc, $imageOptions['x'], $imageOptions['y'], $imageOptions['width'], $imageOptions['height'], '', $imageOptions['link'], $imageOptions['align'], $imageOptions['resize'], $imageOptions['dpi'], $imageOptions['palign'], false, false, $imageOptions['border'], $imageOptions['fitbox'], false, false);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     protected function renderBox($obj)
@@ -843,6 +851,7 @@ class PDFParser
         $options = [
             "height" => $obj['options']['height'] ?? 100,
             "row-height" => $obj['options']['row-height'] ?? null,
+            "margin" => $obj['options']['margin'] ?? 4,
             "x" => $obj['options']['x'] ?? $this->pdf->getX(),
             "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "overflow-margin" => $obj['options']['overflow-margin'] ?? 6,
@@ -882,7 +891,7 @@ class PDFParser
         // render each line
         if (!empty($data)) {
 
-            $this->maxDetailsY[$obj['data']] = $this->pdf->getY();
+            $this->maxDetailsY[$obj['data']] = 0;
 
             foreach ($data as $detail) {
 
@@ -897,6 +906,8 @@ class PDFParser
                 $this->detailsCurrentX = $this->pdf->getX();
                 $this->detailsCurrentY = $this->currentDetailsMaxY($obj['data']);
 
+                /* set rendering save point in order to restore it if necessary below */
+                $this->pdf->startTransaction();
 
                 // iterate componentes in each row
                 foreach ($obj['children'] as $childrenComponent) {
@@ -904,22 +915,27 @@ class PDFParser
                     $this->renderComponent($childrenComponent, $detail);
 
                     /* update maximum Y */
-                    $this->currentDetailsMaxY($obj['data']);
+                    $maxDetailsY = $this->currentDetailsMaxY($obj['data']);
                 }
 
-                $maxDetailsY = $this->currentDetailsMaxY($obj['data']);
+
                 if ($options['row-height'] !== null) {
                     $this->pdf->setY($maxDetailsY + $options['row-height']);
+                } else {
+                    $this->pdf->setY($maxDetailsY);
                 }
 
                 // render new line
-                $this->newLine();
+                $this->newLine([], $options['margin']);
 
                 // set X position again
                 // in FPDF X only can be set after Y, Y default X to 10
                 if ($options['x'] > 0) {
                     $this->pdf->setX($options['x']);
                 }
+
+                /* store rendered componentes row data in order to be restored if necessary */
+                $renderedRowData = $this->details[$obj['data']][0];
 
                 // remove the first data from the details array
                 array_shift($this->details[$obj['data']]);
@@ -932,6 +948,14 @@ class PDFParser
 
                 // check Y position render limit
                 if ($posY >= ($endY - $options['overflow-margin'])) {
+
+                    // rollback last rendering
+                    $this->pdf = $this->pdf->rollbackTransaction();
+
+                    /* restore rendered row data in order to be rendered again on the next page */
+                    $this->details[$obj['data']][] = $renderedRowData;
+
+                    /* returns nothing to prevent further rendering */
                     return;
                 }
             }
@@ -1007,8 +1031,59 @@ class PDFParser
         }
     }
 
+    /**
+     * Parse global options components variables using [[VARIABLE]] syntax
+     * @param $tObj
+     * @return mixed
+     */
+    protected function parseOptionsGlobalVariables($tObj)
+    {
+
+        $globalVariables = [];
+        $children = [];
+
+        if (isset($tObj['children'])) {
+            $children = $tObj['children'];
+            unset($tObj['children']);
+        }
+
+        /* fill details max Y positions */
+        foreach ($this->maxDetailsY as $i => $v) {
+            $globalVariables["max_y_$i"] = $v;
+        }
+
+        /* details X and Y*/
+        $globalVariables["details_x"] = $this->detailsCurrentX ?? 0;
+        $globalVariables["details_y"] = $this->detailsCurrentY ?? 0;
+
+        /* convert to JSON string in order to replace the values easily */
+        $tObjJSON = json_encode($tObj);
+
+        /*echo "maxY :: ".$this->pdf->getY();*/
+        /*echo $tObjJSON."<br><br>";*/
+
+        /* parse global variables */
+        foreach ($globalVariables as $name => $value) {
+            $tObjJSON = str_replace("[[$name]]", $value, $tObjJSON);
+        }
+
+        // convert JSON string back to object
+        $tObj = json_decode($tObjJSON, true);
+
+        // restore children
+        if (!empty($children)) {
+            $tObj['children'] = $children;
+        }
+
+        /* returns processed array */
+        return $tObj;
+    }
+
     protected function renderComponent($tObj, $data = [], $dataName = "")
     {
+        // parse object global variables
+        $tObj = $this->parseOptionsGlobalVariables($tObj);
+
         // visibility conditions
         // ELSE
         if (isset($tObj['else']) && $this->lastShowIf === true) {
@@ -1111,5 +1186,7 @@ class PDFParser
     {
         $this->processTemplate();
         $this->pdf->Output($this->fileName, $this->outputType);
+
+        return true;
     }
 }
