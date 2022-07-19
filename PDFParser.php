@@ -99,8 +99,10 @@ class PDFParser
      * @param $string
      * @return array|string|string[]
      */
-    public function parseGlobalVariables($string, $curlyBraces = true)
+    public function parseGlobalVariables($string, $curlyBraces = true, $returnEmpty = false)
     {
+        $initialString = $string;
+
         $curlyBeginning = ($curlyBraces === true) ? "{{" : "";
         $curlyEnding = ($curlyBraces === true) ? "}}" : "";
         // page numbers
@@ -120,7 +122,12 @@ class PDFParser
             $string = str_replace("[[$key]]", $value, $string);
         }
 
-        return $string;
+        if ($returnEmpty && $string === $initialString) {
+            return "";
+        } else {
+            return $string;
+        }
+
     }
 
     /**
@@ -851,6 +858,7 @@ class PDFParser
         $options = [
             "height" => $obj['options']['height'] ?? 100,
             "row-height" => $obj['options']['row-height'] ?? null,
+            "row-condition" => $obj['options']['row-condition'] ?? null,
             "margin" => $obj['options']['margin'] ?? 4,
             "x" => $obj['options']['x'] ?? $this->pdf->getX(),
             "y" => $obj['options']['y'] ?? $this->pdf->getY(),
@@ -894,6 +902,19 @@ class PDFParser
             $this->maxDetailsY[$obj['data']] = 0;
 
             foreach ($data as $detail) {
+
+                /* check details row visibility */
+                if ($options['row-condition'] !== null) {
+                    if (!($this->checkVisibleCondition($obj, $detail, 'row-condition'))) {
+                        // remove the first data from the details array
+                        array_shift($this->details[$obj['data']]);
+
+                        // clear data property
+                        if (empty($this->details[$obj['data']])) unset($this->details[$obj['data']]);
+
+                        continue;
+                    }
+                }
 
                 // check if header already has already been rendered
                 if ($options['group-by'] && ((!isset($this->lastGroupHeaders[$obj['data']][$options['group-by']])) || (isset($this->lastGroupHeaders[$obj['data']][$options['group-by']]) && $this->lastGroupHeaders[$obj['data']][$options['group-by']] !== $detail[$options['group-by']]))) {
@@ -969,12 +990,12 @@ class PDFParser
         }
     }
 
-    protected function checkVisibleCondition($tObj, $data = [])
+    protected function checkVisibleCondition($tObj, $data = [], $optionName = 'show-if')
     {
         $visible = true;
 
-        if (isset($tObj['show-if'])) {
-            $condition = $tObj['show-if'];
+        if (isset($tObj[$optionName]) || isset($tObj['options'][$optionName])) {
+            $condition = (isset($tObj['options'][$optionName])) ? $tObj['options'][$optionName] : $tObj[$optionName];
 
             // extract condition type from the IF property
             $regexComparer = '/(.+)(>=|<=|==|<|>)(.+)/';
@@ -998,7 +1019,7 @@ class PDFParser
                         $value = $this->getDataField($value, $data);
                     }
 
-                    $dataValue = ($this->getDataField($dataFields, $data) . $this->parseGlobalVariables($dataFields, false));
+                    $dataValue = ($this->getDataField($dataFields, $data) . $this->parseGlobalVariables($dataFields, false, true));
 
                     switch ($comparer) {
                         case '>':
