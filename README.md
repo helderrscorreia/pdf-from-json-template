@@ -106,6 +106,7 @@ After the height it's maxed a new page will be created in order to iterate the r
     "margin": 4, // margin between each line
     "height": 200, // section height per page
     "row-height": 50,  // static row height
+    "row-condition": "price > 0", // condition for row visibility using details data
     "overflow-margin": 6, // when data aproaches this end margin generates new page
     "group-by": "field_name" // group details using the specified field name
   ],
