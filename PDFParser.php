@@ -990,6 +990,13 @@ class PDFParser
         }
     }
 
+    protected function renderGroups($obj)
+    {
+        foreach ($obj['children'] as $groupComponent) {
+            $this->renderComponent($groupComponent);
+        }
+    }
+
     protected function checkVisibleCondition($tObj, $data = [], $optionName = 'show-if')
     {
         $visible = true;
@@ -1175,6 +1182,9 @@ class PDFParser
                 break;
             case 'footer':
                 $this->renderFooters($tObj);
+                break;
+            case 'group':
+                $this->renderGroups($tObj);
                 break;
         }
     }
