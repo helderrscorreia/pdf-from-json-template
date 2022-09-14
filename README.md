@@ -326,6 +326,17 @@ The footer component will repeat itself at the end of each page.
 }
 ```
 
+#### Group
+The group component will apply conditions to children elements
+```javascript
+{
+  "type": "group",
+  "children": [
+    // group components
+  ]
+}
+```
+
 ### Utilities
 
 
