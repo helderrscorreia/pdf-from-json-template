@@ -108,7 +108,8 @@ After the height it's maxed a new page will be created in order to iterate the r
     "row-height": 50,  // static row height
     "row-condition": "price > 0", // condition for row visibility using details data
     "overflow-margin": 6, // when data aproaches this end margin generates new page
-    "group-by": "field_name" // group details using the specified field name
+    "group-by": "field_name", // group details using the specified field name
+    "line-break": true // if a line break should pe placed on each row end
   ],
   "children": [
       {
@@ -187,7 +188,8 @@ The footer component will repeat itself at the end of each page.
     "rotation": 0 // degrees,
     "utf8": false, // force UTF-8 encoding
     "html_decoding": true, // convert HTML entities to chars
-    "group-header": false // only render on each details group header
+    "group-header": false, // only render on each details group header
+    "auto-width": false // set the cell width to the content
   }
 }
 ```
