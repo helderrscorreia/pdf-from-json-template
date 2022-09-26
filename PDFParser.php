@@ -30,6 +30,7 @@ class PDFParser
     private $documentCopies = 1;
     private $currentDocumentCopy = 1;
     private $lastFont = 'times';
+    private $lastFontSize = 8;
     private $lastShowIf = null;
     private $designMode = false;
     private $detailsCurrentX = 0;
@@ -416,6 +417,7 @@ class PDFParser
             "utf8" => $obj['options']['utf8'] ?? false,
             "html_decoding" => $obj['options']['html_decoding'] ?? true,
             "group-header" => $obj['options']['group-header'] ?? false,
+            "auto-width" => $obj['options']['auto-width'] ?? true,
         ];
 
         // check if group header can be printed
@@ -476,13 +478,22 @@ class PDFParser
         // HTML entities decoding
         if ($cellOptions['html_decoding']) $content = html_entity_decode($content);
 
+        /* calculate width */
+        if ($cellOptions['auto-width']) {
+            $size = strlen($content);
+            $letterSize = $cellOptions['font-size'] * 0.18;
+            $width = $size * $letterSize;
+        } else {
+            $width = $cellOptions['width'];
+        }
+
         // render cell
         if ($cellOptions['multiline'] === true) {
-            $this->pdf->MultiCell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], $cellOptions['text-align'], $useFillColor, $cellOptions['multiline-break']);
+            $this->pdf->MultiCell($width, $cellOptions['height'], $content, $cellOptions['border'], $cellOptions['text-align'], $useFillColor, $cellOptions['multiline-break']);
         } else {
             $this->pdf->StartTransform();
             $this->pdf->Rotate($cellOptions['rotation']);
-            $this->pdf->Cell($cellOptions['width'], $cellOptions['height'], $content, $cellOptions['border'], 0, $cellOptions['text-align'], $useFillColor);
+            $this->pdf->Cell($width, $cellOptions['height'], $content, $cellOptions['border'], 0, $cellOptions['text-align'], $useFillColor);
             $this->pdf->StopTransform();
         }
 
@@ -804,8 +815,9 @@ class PDFParser
             "font-size" => $obj['font-size'] ?? 12
         ];
 
-        // save last used font
+        // save last used font and font size
         $this->lastFont = $options['font-family'];
+        $this->lastFontSize = $options["font-size"];
 
         // set last font
         $this->pdf->SetFont($options['font-family'], $options['font-decoration'], $options['font-size']);
@@ -864,6 +876,7 @@ class PDFParser
             "y" => $obj['options']['y'] ?? $this->pdf->getY(),
             "overflow-margin" => $obj['options']['overflow-margin'] ?? 6,
             "group-by" => $obj['options']['group-by'] ?? false,
+            "line-break" => $obj['options']['line-break'] ?? true,
         ];
 
         // set Y position
@@ -939,6 +952,9 @@ class PDFParser
                     $maxDetailsY = $this->currentDetailsMaxY($obj['data']);
                 }
 
+                /* store current X position after component rendering */
+                $afterComponentX = $this->pdf->getX();
+
 
                 if ($options['row-height'] !== null) {
                     $this->pdf->setY($maxDetailsY + $options['row-height']);
@@ -947,12 +963,17 @@ class PDFParser
                 }
 
                 // render new line
-                $this->newLine([], $options['margin']);
+                if ($options['line-break']) {
+                    $this->newLine([], $options['margin']);
+                }
 
                 // set X position again
                 // in FPDF X only can be set after Y, Y default X to 10
-                if ($options['x'] > 0) {
+                if ($options['x'] > 0 && $options['line-break']) {
                     $this->pdf->setX($options['x']);
+                } else {
+                    /* if no line break exists applys stored X position */
+                    $this->pdf->setX($afterComponentX);
                 }
 
                 /* store rendered componentes row data in order to be restored if necessary */
@@ -974,7 +995,7 @@ class PDFParser
                     $this->pdf = $this->pdf->rollbackTransaction();
 
                     /* restore rendered row data in order to be rendered again on the next page */
-                    $this->details[$obj['data']][] = $renderedRowData;
+                    array_unshift($this->details[$obj['data']], $renderedRowData);
 
                     /* returns nothing to prevent further rendering */
                     return;
