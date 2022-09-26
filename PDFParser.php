@@ -417,7 +417,7 @@ class PDFParser
             "utf8" => $obj['options']['utf8'] ?? false,
             "html_decoding" => $obj['options']['html_decoding'] ?? true,
             "group-header" => $obj['options']['group-header'] ?? false,
-            "auto-width" => $obj['options']['auto-width'] ?? true,
+            "auto-width" => $obj['options']['auto-width'] ?? false,
         ];
 
         // check if group header can be printed
