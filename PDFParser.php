@@ -976,11 +976,14 @@ class PDFParser
                     $this->pdf->setX($afterComponentX);
                 }
 
-                /* store rendered componentes row data in order to be restored if necessary */
-                $renderedRowData = $this->details[$obj['data']][0];
+                /* check if data is available */
+                if (isset($this->details[$obj['data']])) {
+                    /* store rendered componentes row data in order to be restored if necessary */
+                    $renderedRowData = $this->details[$obj['data']][0];
 
-                // remove the first data from the details array
-                array_shift($this->details[$obj['data']]);
+                    // remove the first data from the details array
+                    array_shift($this->details[$obj['data']]);
+                }
 
                 // clear data property
                 if (empty($this->details[$obj['data']])) unset($this->details[$obj['data']]);
@@ -995,7 +998,8 @@ class PDFParser
                     $this->pdf = $this->pdf->rollbackTransaction();
 
                     /* restore rendered row data in order to be rendered again on the next page */
-                    array_unshift($this->details[$obj['data']], $renderedRowData);
+                    if (isset($this->details[$obj['data']]))
+                        array_unshift($this->details[$obj['data']], $renderedRowData);
 
                     /* returns nothing to prevent further rendering */
                     return;
@@ -1029,7 +1033,18 @@ class PDFParser
             $regexComparer = '/(.+)(>=|<=|==|<|>)(.+)/';
             preg_match_all($regexComparer, $condition, $matches, PREG_SET_ORDER);
 
-            if (!$this->designMode && empty($matches) && strlen($this->getDataField($condition, $data)) === 0) {
+            $dataField = $this->getDataField($condition, $data);
+
+            /* check data */
+            $noData = true;
+            if (is_string($dataField)) {
+                $noData = (strlen($dataField) === 0);
+            } else if (is_array($dataField)) {
+                $noData = (empty($dataField));
+            }
+
+            /* set visibility condition */
+            if (!$this->designMode && empty($matches) && $noData) {
                 // no comparer condition
                 $visible = false;
             } else {
