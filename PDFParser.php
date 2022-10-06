@@ -35,6 +35,7 @@ class PDFParser
     private $designMode = false;
     private $detailsCurrentX = 0;
     private $detailsCurrentY = 0;
+    private $transactionStartedComponent = null;
 
     public function clearCache()
     {
@@ -178,8 +179,12 @@ class PDFParser
             // parameter data
             $data = $dataArray;
         } else {
-            // global data
-            $data = $this->data;
+            // base data to be used
+            if (isset($this->details[$this->currentDetailsDataField][0][$explodedPath[0]])) {
+                $data = $this->details[$this->currentDetailsDataField][0];
+            } else {
+                $data = $this->data;
+            }
         }
 
         if (sizeof($explodedPath) === 1) {
@@ -857,16 +862,27 @@ class PDFParser
 
     protected function renderDetails($obj)
     {
+        /* check if data is already being processed */
         if (!empty($this->details[$obj['data']])) {
             $data = $this->details[$obj['data']];
         } else {
+            /* first time rendering data */
             $data = $this->getDataField($obj['data']);
-            if (!empty($data)) $this->details[$obj['data']] = $data;
+            if (!empty($data)) {
+
+                /* check if current details isnt saved */
+                if (!isset($this->data[$this->currentDetailsDataField][0][$obj['data']])) {
+                    $this->details[$obj['data']] = $data;
+                }
+            }
         }
 
         // set current details data field
-        $this->currentDetailsDataField = $obj['data'];
+        if (!empty($data) && !isset($this->data[$this->currentDetailsDataField][0][$obj['data']])) {
+            $this->currentDetailsDataField = $obj['data'];
+        }
 
+        /* object default options */
         $options = [
             "height" => $obj['options']['height'] ?? 100,
             "row-height" => $obj['options']['row-height'] ?? null,
@@ -941,7 +957,10 @@ class PDFParser
                 $this->detailsCurrentY = $this->currentDetailsMaxY($obj['data']);
 
                 /* set rendering save point in order to restore it if necessary below */
-                $this->pdf->startTransaction();
+                if ($this->transactionStartedComponent === null) {
+                    $this->pdf->startTransaction();
+                    $this->transactionStartedComponent = $obj['data'];
+                }
 
                 // iterate componentes in each row
                 foreach ($obj['children'] as $childrenComponent) {
@@ -1003,6 +1022,11 @@ class PDFParser
 
                     /* returns nothing to prevent further rendering */
                     return;
+                }
+
+                /* if the current PDF transaction was started by this component it ends it */
+                if ($this->transactionStartedComponent === $obj['data']) {
+                    $this->transactionStartedComponent = null;
                 }
             }
         }
