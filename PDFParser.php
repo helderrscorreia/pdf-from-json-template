@@ -1013,6 +1013,11 @@ class PDFParser
                 // check Y position render limit
                 if ($posY >= ($endY - $options['overflow-margin'])) {
 
+                    // check if group header was printed on this iteration and reset it
+                    if($this->printGroupHeader[$obj['data']] = true){
+                        unset($this->lastGroupHeaders[$obj['data']][$options['group-by']]);
+                    }
+
                     // rollback last rendering
                     $this->pdf = $this->pdf->rollbackTransaction();
 
