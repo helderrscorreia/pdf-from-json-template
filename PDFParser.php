@@ -10,7 +10,7 @@
 
 
 // include TCPDF
-include_once(dirname(__FILE__) . '/../tcpdf/tcpdf_import.php');
+include_once(dirname(__FILE__) . '/../../tcpdf/tcpdf_import.php');
 
 class PDFParser
 {
@@ -35,6 +35,8 @@ class PDFParser
     private $designMode = false;
     private $detailsCurrentX = 0;
     private $detailsCurrentY = 0;
+    private $currentDetailsBaseY = 0; /* register the initial Y for each details row */
+    private $storedPositions = []; /* array of stored positions to be used */
     private $transactionStartedComponent = null;
 
     public function clearCache()
@@ -293,6 +295,15 @@ class PDFParser
         }
 
 
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
+        }
+
+
         $textOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
             "y" => $obj['options']['y'] ?? $defaultY,
@@ -381,6 +392,7 @@ class PDFParser
     protected function renderCell($obj, $dataArray = [])
     {
 
+
         // parse relative positioning
         // dx
         $defaultX = $this->pdf->getX();
@@ -394,12 +406,25 @@ class PDFParser
             $defaultY += $obj['options']['dy'];
         }
 
+        /* set Y as details row initial Y */
+        if (isset($obj['options']['detailsBaseY'])) {
+            $defaultY = $this->currentDetailsBaseY + $obj['options']['detailsBaseY'];
+        }
+
         // details relative X and Y
         if (isset($obj['options']['detailsX'])) {
             $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
         }
         if (isset($obj['options']['detailsY'])) {
             $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
+        }
+
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
         }
 
 
@@ -529,6 +554,14 @@ class PDFParser
             $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
+        }
+
         $imageOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
             "y" => $obj['options']['y'] ?? $defaultY,
@@ -613,6 +646,14 @@ class PDFParser
             $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
+        }
+
         $boxOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
             "y" => $obj['options']['y'] ?? $defaultY,
@@ -684,6 +725,14 @@ class PDFParser
         }
         if (isset($obj['options']['detailsY'])) {
             $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
+        }
+
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
         }
 
         // options
@@ -760,6 +809,14 @@ class PDFParser
         }
         if (isset($obj['options']['detailsY'])) {
             $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
+        }
+
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
         }
 
         // options
@@ -955,6 +1012,7 @@ class PDFParser
 
                 $this->detailsCurrentX = $this->pdf->getX();
                 $this->detailsCurrentY = $this->currentDetailsMaxY($obj['data']);
+                $this->currentDetailsBaseY = $this->pdf->getY();
 
                 /* set rendering save point in order to restore it if necessary below */
                 if ($this->transactionStartedComponent === null) {
@@ -974,18 +1032,6 @@ class PDFParser
                 /* store current X position after component rendering */
                 $afterComponentX = $this->pdf->getX();
 
-
-                if ($options['row-height'] !== null) {
-                    $this->pdf->setY($maxDetailsY + $options['row-height']);
-                } else {
-                    $this->pdf->setY($maxDetailsY);
-                }
-
-                // render new line
-                if ($options['line-break']) {
-                    $this->newLine([], $options['margin']);
-                }
-
                 // set X position again
                 // in FPDF X only can be set after Y, Y default X to 10
                 if ($options['x'] > 0 && $options['line-break']) {
@@ -993,6 +1039,17 @@ class PDFParser
                 } else {
                     /* if no line break exists applys stored X position */
                     $this->pdf->setX($afterComponentX);
+                }
+
+                // render new line
+                if ($options['line-break']) {
+                    $this->newLine([], $options['margin']);
+                }
+
+                if ($options['row-height'] !== null) {
+                    $this->pdf->setY($maxDetailsY + $options['row-height']);
+                } else {
+                    $this->pdf->setY($maxDetailsY);
                 }
 
                 /* check if data is available */
@@ -1014,7 +1071,7 @@ class PDFParser
                 if ($posY >= ($endY - $options['overflow-margin'])) {
 
                     // check if group header was printed on this iteration and reset it
-                    if($this->printGroupHeader[$obj['data']] = true){
+                    if ($this->printGroupHeader[$obj['data']] = true) {
                         unset($this->lastGroupHeaders[$obj['data']][$options['group-by']]);
                     }
 
@@ -1049,6 +1106,19 @@ class PDFParser
         foreach ($obj['children'] as $groupComponent) {
             $this->renderComponent($groupComponent);
         }
+    }
+
+    protected function renderStorePosition($obj)
+    {
+        /* object default options */
+        $options = [
+            "name" => $obj['options']['name'] ?? 'default'
+        ];
+
+        $this->storedPositions[$options['name']] = [
+            "x" => $this->pdf->getX(),
+            "y" => $this->pdf->getY(),
+        ];
     }
 
     protected function checkVisibleCondition($tObj, $data = [], $optionName = 'show-if')
@@ -1250,6 +1320,9 @@ class PDFParser
                 break;
             case 'group':
                 $this->renderGroups($tObj);
+                break;
+            case 'store-position':
+                $this->renderStorePosition($tObj);
                 break;
         }
     }
