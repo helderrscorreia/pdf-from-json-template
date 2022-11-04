@@ -364,6 +364,28 @@ The group component will apply conditions to children elements
 }
 ```
 
+
+#### Store current position
+```javascript
+{
+  "type": "store-position",
+  "options" :{
+    "name": "store-name" 
+  }
+}
+```
+Using this component the current **X and Y** are stored with the given name and can be accessed using the `storedX` and `storedY` options in the components.
+```javascript
+// Usage example
+{
+  "type": "cell",
+  "options": {
+    "storedX": "store-name",
+    "storedY": "store-name"
+  }
+}
+```
+
 ### Global variables
 ```javascript
 {
