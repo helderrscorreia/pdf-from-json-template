@@ -8,7 +8,6 @@
  * Goldylocks Portugal
  */
 
-
 // include TCPDF
 include_once(dirname(__FILE__) . '/../../tcpdf/tcpdf_import.php');
 
@@ -20,7 +19,8 @@ class PDFParser
     private $outputType = "I";
     private $data = [];
     private $cacheFolder = __DIR__ . "/pdf_cache/";
-    private $currentDetailsDataField = "";
+    private $currentDetailsDataField = NULL;
+    private $previousDetailsDataField = NULL;
     private $templateVariables = [];
     private $details = [];
     private $maxDetailsY = [];
@@ -149,7 +149,6 @@ class PDFParser
         // parse global variables
         $string = $this->parseGlobalVariables($string);
 
-
         // details variables
         $string = preg_replace_callback('/{{([\d\w\-\_\.]+)}}/', function ($match) use ($dataArray) {
             return $this->getDataField(str_replace(" ", "", $match[1]), $dataArray);
@@ -159,7 +158,6 @@ class PDFParser
         return preg_replace_callback('/{{([\d\w\-\_\.]+)}}/', function ($match) {
             return $this->getDataField(str_replace(" ", "", $match[1]), $this->data);
         }, $string);
-
 
     }
 
@@ -173,7 +171,6 @@ class PDFParser
         if ($this->designMode && !$forceParse) {
             return "[$fieldPath]";
         }
-
 
         $explodedPath = explode('.', $fieldPath);
 
@@ -218,7 +215,6 @@ class PDFParser
      */
     protected function renderPage($obj)
     {
-
 
         // instantiate TCPDF
         if (!isset($this->pdf)) {
@@ -294,7 +290,6 @@ class PDFParser
             $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
         }
 
-
         // use stored X and Y positions
         if (isset($obj['options']['storedX'])) {
             $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
@@ -302,7 +297,6 @@ class PDFParser
         if (isset($obj['options']['storedY'])) {
             $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
         }
-
 
         $textOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
@@ -360,7 +354,6 @@ class PDFParser
             $posY = $textOptions['y'];
         }
 
-
         if ($textOptions['x'] === 0) {
             $posX = $this->pdf->getX();
         } else {
@@ -391,7 +384,6 @@ class PDFParser
 
     protected function renderCell($obj, $dataArray = [])
     {
-
 
         // parse relative positioning
         // dx
@@ -426,7 +418,6 @@ class PDFParser
         if (isset($obj['options']['storedY'])) {
             $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
         }
-
 
         $cellOptions = [
             "x" => $obj['options']['x'] ?? $defaultX,
@@ -586,7 +577,6 @@ class PDFParser
         // parse image path variables
         $imgSrc = $this->parseStringData($obj['src'], $dataArray);
 
-
         /* IMAGE CACHE MANAGEMENT */
         // image cache is enabled by default
         if ($imageOptions['use-cache']) {
@@ -612,7 +602,6 @@ class PDFParser
                 fclose($fp);
             }
         }
-
 
         // if image URL not empty renders the image
         if (strlen($imgSrc) > 0) {
@@ -699,7 +688,6 @@ class PDFParser
 
         $this->pdf->Line($lineOptions['x1'], $lineOptions['y1'], $lineOptions['x2'], $lineOptions['y2']);
     }
-
 
     protected function render1DBarcode($obj, $data = [])
     {
@@ -892,7 +880,6 @@ class PDFParser
         }
     }
 
-
     protected function currentDetailsMaxY($dataTable)
     {
 
@@ -936,6 +923,13 @@ class PDFParser
 
         // set current details data field
         if (!empty($data) && !isset($this->data[$this->currentDetailsDataField][0][$obj['data']])) {
+
+            // store current details table before updating it in order to use it as parent
+            if ($this->previousDetailsDataField !== $obj['data']) {
+                $this->previousDetailsDataField = $this->currentDetailsDataField;
+            }
+
+            // set new current data table to be iterated
             $this->currentDetailsDataField = $obj['data'];
         }
 
@@ -944,6 +938,8 @@ class PDFParser
             "height" => $obj['options']['height'] ?? 100,
             "row-height" => $obj['options']['row-height'] ?? null,
             "row-condition" => $obj['options']['row-condition'] ?? null,
+            "parent-join-column" => $obj['options']['parent-join-column'] ?? null,
+            "table-join-column" => $obj['options']['table-join-column'] ?? null,
             "margin" => $obj['options']['margin'] ?? 4,
             "x" => $obj['options']['x'] ?? $this->pdf->getX(),
             "y" => $obj['options']['y'] ?? $this->pdf->getY(),
@@ -992,6 +988,18 @@ class PDFParser
                 /* check details row visibility */
                 if ($options['row-condition'] !== null) {
                     if (!($this->checkVisibleCondition($obj, $detail, 'row-condition'))) {
+
+                        // remove the first data from the details array
+                        array_shift($this->details[$obj['data']]);
+
+                        // clear data property
+                        if (empty($this->details[$obj['data']])) unset($this->details[$obj['data']]);
+
+                        continue;
+                    }
+                } else if ($options['parent-join-column'] !== null && $options['table-join-column'] !== null) {
+                    if ($this->checkParentJoinCondition($options['parent-join-column'], $options['table-join-column'])) {
+
                         // remove the first data from the details array
                         array_shift($this->details[$obj['data']]);
 
@@ -1094,6 +1102,12 @@ class PDFParser
         }
     }
 
+    /**
+     * Renders the footers of a component.
+     *
+     * @param array $obj The component data with children attribute.
+     * @return void
+     */
     protected function renderFooters($obj)
     {
         foreach ($obj['children'] as $footerComponent) {
@@ -1119,6 +1133,19 @@ class PDFParser
             "x" => $this->pdf->getX(),
             "y" => $this->pdf->getY(),
         ];
+    }
+
+    /**
+     * Checks the parent join condition between two columns.
+     *
+     * @param string $parentJoinColumn The column in the parent details data.
+     * @param string $objectJoinColumn The column in the current details data.
+     *
+     * @return bool Returns true if the parent join condition is satisfied, false otherwise.
+     */
+    protected function checkParentJoinCondition($parentJoinColumn, $objectJoinColumn)
+    {
+        return ($this->data[$this->previousDetailsDataField][0][$parentJoinColumn] == $this->data[$this->currentDetailsDataField][0][$objectJoinColumn]);
     }
 
     protected function checkVisibleCondition($tObj, $data = [], $optionName = 'show-if')
@@ -1154,7 +1181,6 @@ class PDFParser
 
                     // trim and remove quotes from the value
                     $value = trim(str_replace("'", "", $matches[0][3]));
-
 
                     // check if other value is variable
                     if (!is_numeric($value) && strpos($value, ".") !== false) {
@@ -1265,7 +1291,6 @@ class PDFParser
         } else {
             $this->lastShowIf = null;
         }
-
 
         // render only on last or first page
         if (isset($tObj['first_page']) && $tObj['first_page'] === true && $this->pageCount > 1) return;
