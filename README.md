@@ -107,6 +107,8 @@ After the height it's maxed a new page will be created in order to iterate the r
     "height": 200, // section height per page
     "row-height": 50,  // static row height
     "row-condition": "price > 0", // condition for row visibility using details data
+    "parent-join-column": "parent_data_column_name" // name of the parent column data to compare
+    "table-join-column": "data_column_name" // name of the current details column to join by with the parent column
     "overflow-margin": 6, // when data aproaches this end margin generates new page
     "group-by": "field_name", // group details using the specified field name
     "line-break": true // if a line break should pe placed on each row end
