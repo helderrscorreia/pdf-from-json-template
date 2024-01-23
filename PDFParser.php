@@ -246,6 +246,7 @@ class PDFParser
             $this->pdf = new TCPDF($pageSetup['orientation'], $pageSetup['unit'], $pageSetup['format'], $pageSetup['encoding']);
 
             // disable header and footer
+            $this->pdf->SetAuthor('Goldylocks');
             $this->pdf->setPrintHeader($pageSetup['printHeader']);
             $this->pdf->setPrintFooter($pageSetup['printFooter']);
             $this->pdf->setAutoPageBreak($pageSetup['autoPageBreak']);
@@ -664,6 +665,60 @@ class PDFParser
         $this->pdf->SetFillColor($boxOptions['fill-color'][0], $boxOptions['fill-color'][1], $boxOptions['fill-color'][2]);
 
         $this->pdf->Rect($boxOptions['x'], $boxOptions['y'], $boxOptions['width'], $boxOptions['height'], 'DF');
+    }
+
+    protected function renderEllipse($obj)
+    {
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
+        }
+
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
+        }
+
+        $boxOptions = [
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
+            "width" => $obj['options']['width'] ?? 0,
+            "height" => $obj['options']['height'] ?? 0,
+            "border-width" => $obj['options']['border-width'] ?? 0.1,
+            "border-color" => $obj['options']['border-color'] ?? [0, 0, 0],
+            "fill-color" => $obj['options']['fill-color'] ?? [255, 255, 255],
+            "group-header" => $obj['options']['group-header'] ?? false,
+        ];
+
+        // check if group header can be printed
+        if ($boxOptions['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
+
+        $this->pdf->SetLineWidth($boxOptions['border-width']);
+        $this->pdf->SetDrawColor($boxOptions['border-color'][0], $boxOptions['border-color'][1], $boxOptions['border-color'][2]);
+        $this->pdf->SetFillColor($boxOptions['fill-color'][0], $boxOptions['fill-color'][1], $boxOptions['fill-color'][2]);
+
+        $this->pdf->Ellipse($boxOptions['x'], $boxOptions['y'], $boxOptions['width'], $boxOptions['height']);
     }
 
     protected function renderLine($obj)
@@ -1087,10 +1142,15 @@ class PDFParser
                     $this->pdf = $this->pdf->rollbackTransaction();
 
                     /* restore rendered row data in order to be rendered again on the next page */
-                    if (isset($this->details[$obj['data']]))
+                    if (isset($this->details[$obj['data']])) {
                         array_unshift($this->details[$obj['data']], $renderedRowData);
+                    } elseif (isset($renderedRowData)) {
+//                        if it's the last line it needs to recreate the data array in order to render it on the next page
+                        $this->details[$obj['data']] = [];
+                        $this->details[$obj['data']][] = $renderedRowData;
+                    }
 
-                    /* returns nothing to prevent further rendering */
+                    /* returns nothing to prevent further rendering of the details on the current page */
                     return;
                 }
 
@@ -1318,6 +1378,9 @@ class PDFParser
                 break;
             case 'box':
                 $this->renderBox($tObj);
+                break;
+            case 'ellipse':
+                $this->renderEllipse($tObj);
                 break;
             case 'line':
                 $this->renderLine($tObj);
