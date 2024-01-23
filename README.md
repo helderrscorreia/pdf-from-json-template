@@ -100,7 +100,7 @@ After the height it's maxed a new page will be created in order to iterate the r
 {
   "type": "details",
   "data": "lines", // variable name to be iterated
-  "options":[
+  "options":{
     "x": 10,
     "y": 50,
     "margin": 4, // margin between each line
@@ -112,7 +112,7 @@ After the height it's maxed a new page will be created in order to iterate the r
     "overflow-margin": 6, // when data aproaches this end margin generates new page
     "group-by": "field_name", // group details using the specified field name
     "line-break": true // if a line break should pe placed on each row end
-  ],
+  },
   "children": [
       {
         "type": "cell",
