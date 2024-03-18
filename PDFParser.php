@@ -115,6 +115,9 @@ class PDFParser
 
         // system variables
         $string = str_replace("{$curlyBeginning}current_date{$curlyEnding}", date('Y-m-j'), $string);
+        $string = str_replace("{$curlyBeginning}current_year{$curlyEnding}", date('Y'), $string);
+        $string = str_replace("{$curlyBeginning}current_month{$curlyEnding}", date('m'), $string);
+        $string = str_replace("{$curlyBeginning}current_day{$curlyEnding}", date('j'), $string);
         $string = str_replace("{$curlyBeginning}current_time{$curlyEnding}", date('H:i:s'), $string);
 
         // document copies
@@ -174,16 +177,14 @@ class PDFParser
 
         $explodedPath = explode('.', $fieldPath);
 
+        $data = $this->data;
+
         if (!empty($dataArray)) {
             // parameter data
-            $data = $dataArray;
-        } else {
-            // base data to be used
-            if (isset($this->details[$this->currentDetailsDataField][0][$explodedPath[0]])) {
-                $data = $this->details[$this->currentDetailsDataField][0];
-            } else {
-                $data = $this->data;
-            }
+            $data = array_merge($dataArray, $data);
+        } elseif (isset($this->details[$this->currentDetailsDataField][0][$explodedPath[0]])) {
+            // details data
+            $data = array_merge($this->details[$this->currentDetailsDataField][0], $data);
         }
 
         if (sizeof($explodedPath) === 1) {
