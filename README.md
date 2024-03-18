@@ -412,6 +412,9 @@ Using this component the current **X and Y** are stored with the given name and 
 ```javascript
 {
   "text": "{{current_date}}" // Current date: format YYYY-MM-DD
+  "text": "{{current_year}}" // Current year: format YYYY
+  "text": "{{current_month}}" // Current month: format MM
+  "text": "{{current_day}}" // Current day of the month: format DD
   "text": "{{current_time}}" // Current time: format HH:mm:ss
   "text": "{{page_number}}" // Current page number
   "text": "{{total_pages}}" // Total document pages
