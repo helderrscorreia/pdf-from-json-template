@@ -115,9 +115,6 @@ class PDFParser
 
         // system variables
         $string = str_replace("{$curlyBeginning}current_date{$curlyEnding}", date('Y-m-j'), $string);
-        $string = str_replace("{$curlyBeginning}current_year{$curlyEnding}", date('Y'), $string);
-        $string = str_replace("{$curlyBeginning}current_month{$curlyEnding}", date('m'), $string);
-        $string = str_replace("{$curlyBeginning}current_day{$curlyEnding}", date('j'), $string);
         $string = str_replace("{$curlyBeginning}current_time{$curlyEnding}", date('H:i:s'), $string);
 
         // document copies
