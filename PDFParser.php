@@ -491,7 +491,9 @@ class PDFParser
         $content = $text . $data;
         if (strlen(trim($text)) > 0) {
             if (strpos($text, '%d') !== -1) {
-                $content = str_replace('%d', $data, $text);
+                if (is_string($data)) {
+                    $content = str_replace('%d', $data, $text);
+                }
             }
         }
 
