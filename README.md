@@ -440,6 +440,7 @@ Show only on first page.
 #### SHOW-IF
 ```javascript
 {
+"show-if": "item.type=='ITEM'" // check if variable has value
 "show-if": "company.phone_number" // check if variable has value
 "show-if": "item.price > 5" // compare values
 "show-if": "item.quantity <= options.required_minimum_purchase" // its possible to compare variables also
