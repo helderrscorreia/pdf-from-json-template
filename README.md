@@ -74,7 +74,10 @@ Page is the only required component, and must always be placed at the beginning 
     "autoPageBreak": true,
     "encoding": "UTF-8",
     "printHeader": false,
-    "printFooter": false
+    "printFooter": false,
+    "rotation": 0,
+    "rotation_x": 0, // rotation pivot x coordinates
+    "rotation_y": 0 // rotation pivot y coordinates
   }
 }
 ```
