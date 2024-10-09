@@ -233,7 +233,9 @@ class PDFParser
                 "leftMargin" => $obj['options']['leftMargin'] ?? 10,
                 "rightMargin" => $obj['options']['rightMargin'] ?? 10,
                 "keepMargins" => $obj['options']['keepMargins'] ?? true,
-
+                "rotation" => $obj['options']['rotation'] ?? 0,
+                "rotation_x" => $obj['options']['rotation_x'] ?? 0,
+                "rotation_y" => $obj['options']['rotation_y'] ?? 0,
             ];
 
             // parse format array
@@ -256,6 +258,31 @@ class PDFParser
 
         // add new page
         $this->pdf->AddPage();
+
+        // page rotation
+        if ($pageSetup['rotation'] != 0) {
+
+            // set x rotation
+            if ($pageSetup['rotation_x'] != 0) {
+                $rotationX = $pageSetup['rotation_x'];
+            } elseif (is_array($pageSetup['format'])) {
+                $rotationX = $pageSetup['format'][0] / 2;
+            } else {
+                $rotationX = 0;
+            }
+
+            // set y rotation
+            if ($pageSetup['rotation_y'] != 0) {
+                $rotationY = $pageSetup['rotation_y'];
+            } elseif (is_array($pageSetup['format'])) {
+                $rotationY = $pageSetup['format'][1] / 2;
+            } else {
+                $rotationY = 0;
+            }
+
+            $this->pdf->StartTransform();
+            $this->pdf->Rotate($pageSetup['rotation'], $rotationX, $rotationY);
+        }
 
         /*  clear position placholders */
         $this->maxDetailsY = [];
@@ -377,10 +404,18 @@ class PDFParser
         // HTML entities decoding
         if ($textOptions['html_decoding']) $content = html_entity_decode($content);
 
-        $this->pdf->StartTransform();
-        $this->pdf->Rotate($textOptions['rotation']);
+        // rotation
+        if ($textOptions['rotation'] != 0) {
+            $this->pdf->StartTransform();
+            $this->pdf->Rotate($textOptions['rotation'], $posX, $posY);
+        }
+
         $this->pdf->Text($posX, $posY, $content, 0, false, true, 0, 0, "L", $useFillColor);
-        $this->pdf->StopTransform();
+
+        // stop rotation
+        if ($textOptions['rotation'] != 0) {
+            $this->pdf->StopTransform();
+        }
 
     }
 
