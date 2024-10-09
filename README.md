@@ -303,6 +303,7 @@ The footer component will repeat itself at the end of each page.
     "xres": 0.4,
     "align": "N",
     "group-header": false // only render on each details group header
+    "rotation": 0,
    "position": "",
    "textalign": "C",
    "stretch": false,
