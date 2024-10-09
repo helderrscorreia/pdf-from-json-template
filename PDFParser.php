@@ -181,10 +181,10 @@ class PDFParser
 
         if (!empty($dataArray)) {
             // parameter data
-            $data = array_merge($dataArray, $data);
+            $data = array_merge($data, $dataArray);
         } elseif (isset($this->details[$this->currentDetailsDataField][0][$explodedPath[0]])) {
             // details data
-            $data = array_merge($this->details[$this->currentDetailsDataField][0], $data);
+            $data = array_merge($data, $this->details[$this->currentDetailsDataField][0]);
         }
 
         if (sizeof($explodedPath) === 1) {
@@ -790,6 +790,7 @@ class PDFParser
             "xres" => $obj['options']['xres'] ?? 0.4,
             "align" => $obj['options']['align'] ?? "N",
             "group-header" => $obj['options']['group-header'] ?? false,
+            "rotation" => $obj['options']['rotation'] ?? 0,
         ];
 
         // check if group header can be printed
@@ -828,7 +829,25 @@ class PDFParser
         $content = (isset($obj['content'])) ? $this->parseStringData($obj['content'], $data) : "";
         $dataContent = (isset($obj['data'])) ? $this->getDataField($obj['data'], $data) : "";
 
-        $this->pdf->write1DBarcode($content . $dataContent, $style['type'], $options['x'], $options['y'], $options['width'], $options['height'], $options['xres'], $style, $options['align']);
+        $barcodeContent = $content . $dataContent;
+
+        // fix wrong EAN-13 text length to increase compatibility
+        if (strlen($barcodeContent) < 12 && strtoupper($style['type']) === 'EAN13') {
+            $barcodeContent = str_pad($barcodeContent, 12, '0', STR_PAD_LEFT);
+        }
+
+        // start rotation transform if rotation is not zero
+        if ($options['rotation'] != 0) {
+            $this->pdf->StartTransform();
+            $this->pdf->Rotate($options['rotation'], $options['x'], $options['y']);
+        }
+
+        $this->pdf->write1DBarcode($barcodeContent, $style['type'], $options['x'], $options['y'], $options['width'], $options['height'], $options['xres'], $style, $options['align']);
+
+        // stop rotation transform
+        if ($options['rotation'] != 0) {
+            $this->pdf->StopTransform();
+        }
     }
 
     protected function renderQrCode($obj, $data = [])
