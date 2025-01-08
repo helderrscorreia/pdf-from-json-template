@@ -38,6 +38,7 @@ class PDFParser
     private $currentDetailsBaseY = 0; /* register the initial Y for each details row */
     private $storedPositions = []; /* array of stored positions to be used */
     private $transactionStartedComponent = null;
+    private $isPageRotationAlreadyApplied = false;
 
     public function clearCache()
     {
@@ -217,33 +218,33 @@ class PDFParser
     protected function renderPage($obj)
     {
 
+        // page properties
+        $pageSetup = [
+            "orientation" => $obj['options']['orientation'] ?? "P",
+            "unit" => $obj['options']['unit'] ?? "mm",
+            "format" => $obj['options']['format'] ?? "A4",
+            "encoding" => $obj['options']['encoding'] ?? "UTF-8",
+            "printHeader" => $obj['options']['printHeader'] ?? false,
+            "printFooter" => $obj['options']['printFooter'] ?? false,
+            "autoPageBreak" => $obj['options']['autoPageBreak'] ?? true,
+            "topMargin" => $obj['options']['topMargin'] ?? 10,
+            "leftMargin" => $obj['options']['leftMargin'] ?? 10,
+            "rightMargin" => $obj['options']['rightMargin'] ?? 10,
+            "keepMargins" => $obj['options']['keepMargins'] ?? true,
+            "rotation" => $obj['options']['rotation'] ?? 0,
+            "rotation_x" => $obj['options']['rotation_x'] ?? 0,
+            "rotation_y" => $obj['options']['rotation_y'] ?? 0,
+        ];
+
+        // parse format array
+        if ($pageSetup['format'][0] === "[") {
+            $f = str_replace('[', '', $pageSetup['format']);
+            $f = str_replace(']', '', $f);
+            $pageSetup['format'] = explode(',', $f);
+        }
+
         // instantiate TCPDF
         if (!isset($this->pdf)) {
-
-            // page properties
-            $pageSetup = [
-                "orientation" => $obj['options']['orientation'] ?? "P",
-                "unit" => $obj['options']['unit'] ?? "mm",
-                "format" => $obj['options']['format'] ?? "A4",
-                "encoding" => $obj['options']['encoding'] ?? "UTF-8",
-                "printHeader" => $obj['options']['printHeader'] ?? false,
-                "printFooter" => $obj['options']['printFooter'] ?? false,
-                "autoPageBreak" => $obj['options']['autoPageBreak'] ?? true,
-                "topMargin" => $obj['options']['topMargin'] ?? 10,
-                "leftMargin" => $obj['options']['leftMargin'] ?? 10,
-                "rightMargin" => $obj['options']['rightMargin'] ?? 10,
-                "keepMargins" => $obj['options']['keepMargins'] ?? true,
-                "rotation" => $obj['options']['rotation'] ?? 0,
-                "rotation_x" => $obj['options']['rotation_x'] ?? 0,
-                "rotation_y" => $obj['options']['rotation_y'] ?? 0,
-            ];
-
-            // parse format array
-            if ($pageSetup['format'][0] === "[") {
-                $f = str_replace('[', '', $pageSetup['format']);
-                $f = str_replace(']', '', $f);
-                $pageSetup['format'] = explode(',', $f);
-            }
 
             // instantiate TCPDF
             $this->pdf = new TCPDF($pageSetup['orientation'], $pageSetup['unit'], $pageSetup['format'], $pageSetup['encoding']);
@@ -280,6 +281,7 @@ class PDFParser
                 $rotationY = 0;
             }
 
+            // initiate rotation
             $this->pdf->StartTransform();
             $this->pdf->Rotate($pageSetup['rotation'], $rotationX, $rotationY);
         }
@@ -533,7 +535,7 @@ class PDFParser
         }
 
         // UTF-8 encoding
-        if ($cellOptions['utf8']) $content = utf8_encode($content);
+        if ($cellOptions['utf8']) $content = mb_convert_encoding($content, 'UTF-8', 'ISO-8859-1');
 
         // HTML entities decoding
         if ($cellOptions['html_decoding']) $content = html_entity_decode($content);
@@ -703,6 +705,58 @@ class PDFParser
         $this->pdf->SetFillColor($boxOptions['fill-color'][0], $boxOptions['fill-color'][1], $boxOptions['fill-color'][2]);
 
         $this->pdf->Rect($boxOptions['x'], $boxOptions['y'], $boxOptions['width'], $boxOptions['height'], 'DF');
+    }
+
+    protected function renderGradient($obj)
+    {
+        // parse relative positioning
+        // dx
+        $defaultX = $this->pdf->getX();
+        if (isset($obj['options']['dx'])) {
+            $defaultX += $obj['options']['dx'];
+        }
+
+        // dy
+        $defaultY = $this->pdf->getY();
+        if (isset($obj['options']['dy'])) {
+            $defaultY += $obj['options']['dy'];
+        }
+
+        // details relative X and Y
+        if (isset($obj['options']['detailsX'])) {
+            $defaultX = $this->detailsCurrentX + $obj['options']['detailsX'];
+        }
+        if (isset($obj['options']['detailsY'])) {
+            $defaultY = $this->detailsCurrentY + $obj['options']['detailsY'];
+        }
+
+        // use stored X and Y positions
+        if (isset($obj['options']['storedX'])) {
+            $defaultX = $this->storedPositions[$obj['options']['storedX']]['x'];
+        }
+        if (isset($obj['options']['storedY'])) {
+            $defaultY = $this->storedPositions[$obj['options']['storedY']]['y'];
+        }
+
+        $gradientOptions = [
+            "x" => $obj['options']['x'] ?? $defaultX,
+            "y" => $obj['options']['y'] ?? $defaultY,
+            "width" => $obj['options']['width'] ?? 0,
+            "height" => $obj['options']['height'] ?? 0,
+            "left-color" => $obj['options']['left-color'] ?? [255, 255, 255],
+            "right-color" => $obj['options']['right-color'] ?? [255, 255, 255],
+            "group-header" => $obj['options']['group-header'] ?? false,
+        ];
+
+        // check if group header can be printed
+        if ($gradientOptions['group-header'] === true && isset($this->printGroupHeader[$this->currentDetailsDataField]) && !$this->printGroupHeader[$this->currentDetailsDataField]) {
+            return false;
+        }
+
+        // set the coordinates x1,y1,x2,y2 of the gradient (see linear_gradient_coords.jpg)
+        $coords = array(0, 0, 1, 0);
+
+        $this->pdf->LinearGradient($gradientOptions['x'], $gradientOptions['y'], $gradientOptions['width'], $gradientOptions['height'], $gradientOptions['left-color'], $gradientOptions['right-color'], $coords);
     }
 
     protected function renderEllipse($obj)
@@ -1435,6 +1489,9 @@ class PDFParser
                 break;
             case 'box':
                 $this->renderBox($tObj);
+                break;
+            case 'gradient':
+                $this->renderGradient($tObj);
                 break;
             case 'ellipse':
                 $this->renderEllipse($tObj);
