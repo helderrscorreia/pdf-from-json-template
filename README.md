@@ -243,6 +243,26 @@ The footer component will repeat itself at the end of each page.
 }
 ```
 
+#### Gradient
+```javascript
+{
+  "type": "gradient",
+  "options": {
+    "x": 10,
+    "y": 10,
+    "dx": 10, // relative X position to the current X
+    "dy": 10, // relative Y position to the current Y
+    "detailsX": 10, // details row relative X
+    "detailsY": 10, // details row relative Y
+    "width": 50,
+    "height": 50,
+    "left-color": [0,0,0],
+    "right-color": [255,255,255],
+    "group-header": false // only render on each details group header
+  }
+}
+```
+
 
 #### Box
 ```javascript
