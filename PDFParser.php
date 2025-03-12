@@ -28,6 +28,7 @@ class PDFParser
     private $printGroupHeader = [];
     private $pageCount = 0;
     private $documentCopies = 1;
+    private $documentCopiesArray = [];
     private $currentDocumentCopy = 1;
     private $lastFont = 'times';
     private $lastFontSize = 8;
@@ -79,9 +80,20 @@ class PDFParser
     /**
      * @param int $documentCopies
      */
-    public function setDocumentCopies($documentCopies = 1)
+    public function setDocumentCopies($documentCopies = 1, $documentCopiesArray = [])
     {
+        // store number of document copies to generate
         $this->documentCopies = $documentCopies;
+
+        // generate document copies array if empty, eg. [1,2,3,...] if not defined
+        if ($documentCopies > 0 && empty($documentCopiesArray)) {
+            for ($i = 1; $i <= $documentCopies; $i++) {
+                $documentCopiesArray[] = $i;
+            }
+        }
+
+        // store document copies array eg. [2,3] in order to print only the second and third page
+        $this->documentCopiesArray = $documentCopiesArray;
     }
 
     /**
@@ -122,7 +134,7 @@ class PDFParser
         $string = str_replace("{$curlyBeginning}current_time{$curlyEnding}", date('H:i:s'), $string);
 
         // document copies
-        $string = str_replace("{$curlyBeginning}current_copy{$curlyEnding}", $this->currentDocumentCopy, $string);
+        $string = str_replace("{$curlyBeginning}current_copy{$curlyEnding}", $this->documentCopiesArray[$this->currentDocumentCopy - 1], $string);
         $string = str_replace("{$curlyBeginning}document_copies{$curlyEnding}", $this->documentCopies, $string);
 
         // template variables
