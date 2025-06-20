@@ -9,7 +9,7 @@
  */
 
 // include TCPDF
-include_once(dirname(__FILE__) . '/../../tcpdf/tcpdf_import.php');
+include_once(dirname(__FILE__) . '/TCPDF-main/tcpdf.php');
 
 class PDFParser
 {
@@ -134,7 +134,10 @@ class PDFParser
         $string = str_replace("{$curlyBeginning}current_time{$curlyEnding}", date('H:i:s'), $string);
 
         // document copies
-        $string = str_replace("{$curlyBeginning}current_copy{$curlyEnding}", $this->documentCopiesArray[$this->currentDocumentCopy - 1], $string);
+        if(isset($this->documentCopiesArray[$this->currentDocumentCopy - 1]))
+            $string = str_replace("{$curlyBeginning}current_copy{$curlyEnding}", $this->documentCopiesArray[$this->currentDocumentCopy - 1], $string);
+
+
         $string = str_replace("{$curlyBeginning}document_copies{$curlyEnding}", $this->documentCopies, $string);
 
         // template variables
@@ -195,7 +198,7 @@ class PDFParser
         if (!empty($dataArray)) {
             // parameter data
             $data = array_merge($data, $dataArray);
-        } elseif (isset($this->details[$this->currentDetailsDataField][0][$explodedPath[0]])) {
+        } elseif (isset($this->currentDetailsDataField) && isset($this->details[$this->currentDetailsDataField][0][$explodedPath[0]])) {
             // details data
             $data = array_merge($data, $this->details[$this->currentDetailsDataField][0]);
         }
